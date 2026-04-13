@@ -25,6 +25,7 @@
   font-size: 64px;
   margin: 0 0 20px;
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  line-height: 50px;
 }
 
 .hero-subtitle {
@@ -234,10 +235,27 @@
   }
 
   .cta {
-    padding: 40px 24px;
+    padding: 40px 24px 100px;
+    position: relative;
   }
 
   .cta h2 {
     font-size: 28px;
+  }
+
+  .landing-footer {
+    position: static;
+    justify-content: center;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+  }
+
+  .landing-footer p {
+    justify-content: center;
+  }
+
+  .ncs-logo {
+    height: 60px;
   }
 }
