@@ -273,11 +273,11 @@
   }
 
   .listings-sidebar {
-    order: 2;
+    order: 1;
   }
 
   .listings-main {
-    order: 1;
+    order: 2;
   }
 
   .listing-cards {
