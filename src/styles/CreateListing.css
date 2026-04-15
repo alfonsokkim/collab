@@ -1,31 +1,31 @@
 .create-listing-container {
-  min-height: calc(100vh - 80px);
+  min-height: calc(100vh - 60px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
-  background: linear-gradient(135deg, rgba(238, 171, 94, 0.05) 0%, rgba(245, 200, 144, 0.05) 100%);
-  padding: 40px 24px;
+  background: var(--bg-light);
+  padding: 48px 24px;
 }
 
 .create-listing-card {
   background: white;
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 48px;
+  border-radius: var(--radius-lg);
+  padding: 44px 48px;
   width: 100%;
-  max-width: 700px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  max-width: 680px;
+  box-shadow: var(--shadow-lg);
 }
 
 .create-listing-header {
-  text-align: center;
-  margin-bottom: 36px;
+  margin-bottom: 32px;
 }
 
 .create-listing-header h1 {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   color: var(--text);
-  font-size: 32px;
+  font-size: 26px;
+  font-family: var(--heading);
 }
 
 .create-listing-header p {
@@ -37,13 +37,13 @@
 .error-message {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: #fee;
-  border: 1px solid #fcc;
-  border-radius: 8px;
-  color: #c33;
-  font-size: 14px;
+  gap: 10px;
+  padding: 11px 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius);
+  color: #dc2626;
+  font-size: 13px;
   margin-bottom: 20px;
 }
 
@@ -55,23 +55,24 @@
 .create-listing-form {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 22px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
 }
 
 .form-group label {
   font-weight: 600;
   color: var(--text);
-  font-size: 14px;
+  font-size: 13px;
+  letter-spacing: 0.01em;
 }
 
 .field-hint {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--text-light);
   margin: 0;
 }
@@ -79,22 +80,22 @@
 .input-wrapper {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 10px;
+  padding: 11px 14px;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: var(--bg-light);
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .input-wrapper:focus-within {
   border-color: var(--primary);
   background: white;
-  box-shadow: 0 0 0 3px rgba(238, 171, 94, 0.1);
+  box-shadow: 0 0 0 3px rgba(232, 160, 69, 0.12);
 }
 
 .input-wrapper svg {
-  color: var(--primary);
+  color: var(--text-light);
   flex-shrink: 0;
   stroke-width: 2;
 }
@@ -123,22 +124,22 @@
 
 textarea {
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 12px 16px;
+  border-radius: var(--radius);
+  padding: 11px 14px;
   background: var(--bg-light);
   font-size: 15px;
   color: var(--text);
   font-family: var(--sans);
   font-weight: 400;
   resize: vertical;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 textarea:focus {
   outline: none;
   border-color: var(--primary);
   background: white;
-  box-shadow: 0 0 0 3px rgba(238, 171, 94, 0.1);
+  box-shadow: 0 0 0 3px rgba(232, 160, 69, 0.12);
 }
 
 textarea::placeholder {
@@ -160,94 +161,97 @@ textarea:disabled {
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 16px;
 }
 
 .tags-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 8px;
 }
 
 .tag-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 12px 16px;
-  border: 2px solid var(--border);
-  background: white;
-  border-radius: 8px;
+  gap: 7px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-light);
+  border-radius: var(--radius);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.12s ease;
   font-weight: 500;
-  font-size: 14px;
-  color: var(--text);
+  font-size: 13px;
+  color: var(--text-mid);
   font-family: var(--sans);
 }
 
 .tag-button:hover {
   border-color: var(--primary);
-  background: rgba(238, 171, 94, 0.05);
+  background: var(--primary-subtle);
+  color: var(--primary-dark);
 }
 
 .tag-button.active {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary);
+  background: var(--primary-subtle);
+  color: var(--primary-dark);
+  border-color: rgba(232, 160, 69, 0.35);
+  font-weight: 600;
 }
 
 .tag-button:disabled {
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 .submit-btn {
   padding: 12px 24px;
-  background: var(--primary);
+  background: var(--dark);
   color: white;
   border: none;
-  border-radius: 8px;
-  font-size: 16px;
+  border-radius: var(--radius);
+  font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  margin-top: 8px;
+  transition: all 0.15s ease;
+  margin-top: 4px;
+  font-family: var(--sans);
 }
 
 .submit-btn:hover:not(:disabled) {
-  background: var(--primary-dark);
-  box-shadow: 0 8px 16px rgba(238, 171, 94, 0.3);
+  background: var(--dark-surface);
+  transform: translateY(-1px);
 }
 
 .submit-btn:active:not(:disabled) {
-  opacity: 0.9;
+  transform: scale(0.98);
 }
 
 .submit-btn:disabled {
-  opacity: 0.7;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .image-upload-area {
-  border: 2px dashed var(--primary);
-  border-radius: 8px;
-  padding: 40px 20px;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 36px 20px;
   text-align: center;
-  background: rgba(238, 171, 94, 0.05);
-  transition: all 0.2s ease;
+  background: var(--bg-light);
+  transition: all 0.15s ease;
 }
 
 .image-upload-area:hover {
-  border-color: var(--primary-dark);
-  background: rgba(238, 171, 94, 0.1);
+  border-color: var(--primary);
+  background: var(--primary-subtle);
 }
 
 .upload-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   border: none;
   background: transparent;
   cursor: pointer;
@@ -258,17 +262,17 @@ textarea:disabled {
 
 .upload-btn:disabled {
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 .upload-btn svg {
-  color: var(--primary);
-  stroke-width: 1.5;
+  color: var(--text-light);
+  stroke-width: 1.75;
 }
 
 .upload-btn span:first-of-type {
-  font-weight: 500;
-  font-size: 16px;
+  font-weight: 600;
+  font-size: 15px;
   color: var(--text);
 }
 
@@ -280,12 +284,12 @@ textarea:disabled {
 
 .banner-preview {
   position: relative;
-  width: 120px;
-  height: 120px;
-  border-radius: 8px;
+  width: 110px;
+  height: 110px;
+  border-radius: var(--radius);
   overflow: hidden;
   margin: 0 auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow);
 }
 
 .banner-preview img {
@@ -298,26 +302,26 @@ textarea:disabled {
   position: absolute;
   top: 4px;
   right: 4px;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0,0,0,0.7);
   border: none;
   color: white;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: background 0.15s ease;
 }
 
 .remove-banner-btn:hover {
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0,0,0,0.9);
 }
 
 .remove-banner-btn:disabled {
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 .remove-banner-btn svg {
@@ -327,21 +331,21 @@ textarea:disabled {
 /* Multi-image preview grid */
 .images-preview-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 10px;
   padding: 12px;
   background: var(--bg-light);
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: var(--radius);
 }
 
 .image-preview-item {
   position: relative;
   aspect-ratio: 1;
-  border-radius: 8px;
+  border-radius: var(--radius);
   overflow: hidden;
   background: var(--bg-light);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-sm);
 }
 
 .image-preview-item img {
@@ -354,22 +358,22 @@ textarea:disabled {
   position: absolute;
   top: 4px;
   right: 4px;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  background: rgba(0, 0, 0, 0.7);
+  background: rgba(0,0,0,0.65);
   border: none;
   color: white;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  transition: background 0.15s ease;
   padding: 0;
 }
 
 .remove-image-btn:hover {
-  background: rgba(0, 0, 0, 0.9);
+  background: rgba(0,0,0,0.9);
 }
 
 .remove-image-btn:disabled {
@@ -383,53 +387,57 @@ textarea:disabled {
 
 .add-image-cell {
   aspect-ratio: 1;
-  border-radius: 8px;
-  border: 2px dashed var(--primary);
-  background: rgba(238, 171, 94, 0.05);
+  border-radius: var(--radius);
+  border: 1.5px dashed var(--border);
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
 }
 
 .add-image-cell:hover {
-  border-color: var(--primary-dark);
-  background: rgba(238, 171, 94, 0.1);
+  border-color: var(--primary);
+  background: var(--primary-subtle);
 }
 
 .add-image-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   border: none;
   background: transparent;
   cursor: pointer;
-  color: var(--text);
+  color: var(--text-light);
   font-family: var(--sans);
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   padding: 0;
 }
 
 .add-image-btn:disabled {
   cursor: not-allowed;
-  opacity: 0.6;
+  opacity: 0.5;
 }
 
 .add-image-btn svg {
-  color: var(--primary);
-  stroke-width: 1.5;
+  color: var(--text-light);
+  stroke-width: 1.75;
 }
 
 @media (max-width: 768px) {
+  .create-listing-container {
+    padding: 28px 20px;
+  }
+
   .create-listing-card {
-    padding: 32px;
+    padding: 28px 24px;
   }
 
   .create-listing-header h1 {
-    font-size: 28px;
+    font-size: 22px;
   }
 
   .form-row {
@@ -437,6 +445,6 @@ textarea:disabled {
   }
 
   .tags-grid {
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
   }
 }

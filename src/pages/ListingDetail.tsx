@@ -16,6 +16,7 @@ interface ListingData {
   bannerImageUrl?: string;
   imageUrls?: string[];
   societyName: string;
+  societyType?: string;
   userId: string;
   createdAt: string;
 }
@@ -69,6 +70,7 @@ export function ListingDetail() {
           bannerImageUrl: data.bannerImageUrl,
           imageUrls: data.imageUrls || [],
           societyName: data.societyName,
+          societyType: data.societyType,
           userId: data.userId,
           createdAt: data.createdAt,
         };
@@ -490,7 +492,12 @@ export function ListingDetail() {
             <div>
               <div className="detail-title-section">
                 <h1>{listing.title}</h1>
-                <p className="detail-society">{listing.societyName}</p>
+                <div className="detail-society-row">
+                  <p className="detail-society">{listing.societyName}</p>
+                  {listing.societyType && (
+                    <span className="society-type-badge">{listing.societyType}</span>
+                  )}
+                </div>
                 <p className="detail-posted">Posted on {eventDate}</p>
               </div>
             </div>
@@ -559,7 +566,12 @@ export function ListingDetail() {
         <div className="detail-header">
           <div className="detail-title-section">
             <h1>{listing.title}</h1>
-            <p className="detail-society">{listing.societyName}</p>
+            <div className="detail-society-row">
+              <p className="detail-society">{listing.societyName}</p>
+              {listing.societyType && (
+                <span className="society-type-badge">{listing.societyType}</span>
+              )}
+            </div>
             <p className="detail-posted">Posted on {eventDate}</p>
           </div>
         </div>

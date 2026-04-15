@@ -1,7 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { Mail, Users, Edit2, Save, X, AlertCircle, Image as ImageIcon } from 'lucide-react';
+import { Mail, Users, Edit2, Save, X, AlertCircle, Pencil } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { getSocietyProfile, saveSocietyProfile, type SocietyProfile } from '../services/societyService';
+import { getSocietyProfile, saveSocietyProfile, SOCIETY_TYPES, type SocietyProfile } from '../services/societyService';
+import { fetchListingsByUserId } from '../services/listingService';
+import { AcademicTimeline } from '../components/AcademicTimeline';
 import instagramIcon from '../assets/instagram-icon.svg';
 import discordIcon from '../assets/discord-icon.svg';
 import facebookIcon from '../assets/facebook-icon.svg';
@@ -15,6 +17,7 @@ export function Profile() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [logoImage, setLogoImage] = useState<string | null>(null);
+  const [eventDates, setEventDates] = useState<Date[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [society, setSociety] = useState<SocietyProfile>({
@@ -56,6 +59,10 @@ export function Profile() {
           setSociety({ ...society, name: defaultName });
           setEditForm({ ...editForm, name: defaultName });
         }
+        // Also load the user's listings for the timeline
+        const listings = await fetchListingsByUserId(user.id);
+        const dates = listings.map(l => new Date(l.date + 'T00:00:00'));
+        setEventDates(dates);
       } catch (err) {
         console.error('Error loading profile:', err);
         setError('Failed to load profile');
@@ -106,14 +113,6 @@ export function Profile() {
     reader.readAsDataURL(file);
   };
 
-  const removeLogoImage = () => {
-    setLogoImage(null);
-    setEditForm({ ...editForm, logoImageUrl: undefined });
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
   const handleSave = async () => {
     if (!user) return;
 
@@ -151,16 +150,29 @@ export function Profile() {
 
   return (
     <div className="profile">
+      <div className="profile-header-card">
       <div className="profile-header">
-        {logoImage || society.logoImageUrl ? (
-          <div className="profile-avatar-image">
-            <img src={logoImage || society.logoImageUrl} alt="Society logo" />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleImageUpload}
+          style={{ display: 'none' }}
+        />
+        <div className="profile-avatar-wrapper" onClick={() => fileInputRef.current?.click()}>
+          {logoImage || society.logoImageUrl ? (
+            <div className="profile-avatar-image">
+              <img src={logoImage || society.logoImageUrl} alt="Society logo" />
+            </div>
+          ) : (
+            <div className="profile-avatar">
+              <Users size={64} strokeWidth={1.5} />
+            </div>
+          )}
+          <div className="profile-avatar-overlay">
+            <Pencil size={24} />
           </div>
-        ) : (
-          <div className="profile-avatar">
-            <Users size={64} strokeWidth={1.5} />
-          </div>
-        )}
+        </div>
         <div className="profile-info">
           {isEditing ? (
             <div className="profile-form-group">
@@ -173,7 +185,12 @@ export function Profile() {
               />
             </div>
           ) : (
-            <h1>{displaySociety.name || 'My Society'}</h1>
+            <div className="profile-name-row">
+              <h1>{displaySociety.name || 'My Society'}</h1>
+              {displaySociety.societyType && (
+                <span className="society-type-badge">{displaySociety.societyType}</span>
+              )}
+            </div>
           )}
 
           {isEditing ? (
@@ -222,6 +239,11 @@ export function Profile() {
         )}
       </div>
 
+      <div className="profile-header-timeline">
+        <AcademicTimeline eventDates={eventDates} />
+      </div>
+      </div> {/* end profile-header-card */}
+
       {error && (
         <div className="error-message">
           <AlertCircle size={18} />
@@ -230,42 +252,6 @@ export function Profile() {
       )}
 
       <div className="profile-content">
-        {isEditing && (
-          <section className="profile-section">
-            <h2>Profile Photo</h2>
-            {logoImage || society.logoImageUrl ? (
-              <div className="logo-preview">
-                <img src={logoImage || society.logoImageUrl} alt="Logo" />
-                <button
-                  type="button"
-                  onClick={removeLogoImage}
-                  className="remove-logo-btn"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-            ) : (
-              <div className="image-upload-area">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  style={{ display: 'none' }}
-                />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="upload-btn"
-                >
-                  <ImageIcon size={32} />
-                  <span>Click to upload society logo</span>
-                </button>
-              </div>
-            )}
-          </section>
-        )}
-
         {isEditing && (
           <section className="profile-section">
             <h2>Additional Info</h2>
@@ -288,6 +274,21 @@ export function Profile() {
                   min="2000"
                   max={new Date().getFullYear()}
                 />
+              </div>
+            </div>
+            <div className="form-group" style={{ marginTop: '14px' }}>
+              <label>Society Type</label>
+              <div className="profile-type-grid">
+                {SOCIETY_TYPES.map(type => (
+                  <button
+                    key={type}
+                    type="button"
+                    className={`profile-type-btn ${editForm.societyType === type ? 'active' : ''}`}
+                    onClick={() => setEditForm({ ...editForm, societyType: type })}
+                  >
+                    {type}
+                  </button>
+                ))}
               </div>
             </div>
           </section>

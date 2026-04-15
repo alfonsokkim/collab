@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, Users, AlertCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
+import { SOCIETY_TYPES } from '../services/societyService';
 import '../styles/SignUp.css';
 
 export function SignUp() {
   const [societyName, setSocietyName] = useState('');
+  const [societyType, setSocietyType] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -17,6 +19,11 @@ export function SignUp() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (!societyType) {
+      setError('Please select a society type');
+      return;
+    }
 
     if (password !== confirmPassword) {
       setError('Passwords do not match');
@@ -31,7 +38,7 @@ export function SignUp() {
     setLoading(true);
 
     try {
-      await signUp(email, password, societyName);
+      await signUp(email, password, societyName, societyType);
       navigate('/login');
     } catch (err: any) {
       setError(err.message || 'Failed to create account. Please try again.');
@@ -69,6 +76,23 @@ export function SignUp() {
                 disabled={loading}
                 required
               />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Society Type</label>
+            <div className="society-type-grid">
+              {SOCIETY_TYPES.map(type => (
+                <button
+                  key={type}
+                  type="button"
+                  className={`society-type-btn ${societyType === type ? 'active' : ''}`}
+                  onClick={() => setSocietyType(type)}
+                  disabled={loading}
+                >
+                  {type}
+                </button>
+              ))}
             </div>
           </div>
 

@@ -1,5 +1,20 @@
 import { supabase } from '../lib/supabase';
 
+export const SOCIETY_TYPES = [
+  'Faculty',
+  'Hobby',
+  'Business',
+  'Sports',
+  'Cultural',
+  'Tech',
+  'Arts',
+  'Community',
+  'Professional',
+  'Environment',
+] as const;
+
+export type SocietyType = typeof SOCIETY_TYPES[number];
+
 export interface SocietyProfile {
   id?: string;
   userId?: string;
@@ -7,6 +22,7 @@ export interface SocietyProfile {
   description?: string;
   membersCount?: number;
   foundedYear?: number;
+  societyType?: SocietyType | string;
   instagram?: string;
   discordUrl?: string;
   facebook?: string;
@@ -92,6 +108,7 @@ export async function getSocietyProfile(userId: string): Promise<SocietyProfile 
       description: data.description,
       membersCount: data.members_count,
       foundedYear: data.founded_year,
+      societyType: data.society_type,
       instagram: data.instagram,
       discordUrl: data.discord_url,
       facebook: data.facebook,
@@ -131,6 +148,7 @@ export async function saveSocietyProfile(userId: string, profile: SocietyProfile
           description: profile.description,
           members_count: profile.membersCount,
           founded_year: profile.foundedYear,
+          society_type: profile.societyType,
           instagram: profile.instagram,
           discord_url: profile.discordUrl,
           facebook: profile.facebook,
@@ -156,6 +174,7 @@ export async function saveSocietyProfile(userId: string, profile: SocietyProfile
         description: data.description,
         membersCount: data.members_count,
         foundedYear: data.founded_year,
+        societyType: data.society_type,
         instagram: data.instagram,
         discordUrl: data.discord_url,
         facebook: data.facebook,
@@ -175,6 +194,7 @@ export async function saveSocietyProfile(userId: string, profile: SocietyProfile
             description: profile.description,
             members_count: profile.membersCount || 0,
             founded_year: profile.foundedYear,
+            society_type: profile.societyType,
             instagram: profile.instagram,
             discord_url: profile.discordUrl,
             facebook: profile.facebook,
@@ -199,6 +219,7 @@ export async function saveSocietyProfile(userId: string, profile: SocietyProfile
         description: data.description,
         membersCount: data.members_count,
         foundedYear: data.founded_year,
+        societyType: data.society_type,
         instagram: data.instagram,
         discordUrl: data.discord_url,
         facebook: data.facebook,

@@ -1,20 +1,33 @@
-:root {
-  --primary: #eeab5e;
-  --primary-light: #f5c890;
-  --primary-dark: #d99a4c;
-  --text: #333333;
-  --text-light: #666666;
-  --bg: #ffffff;
-  --bg-light: #fafaf8;
-  --border: #e5e4e7;
-  --shadow: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Outfit:wght@300;400;500;600;700&display=swap');
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+:root {
+  --primary: #e8a045;
+  --primary-light: #f5c278;
+  --primary-dark: #c9872e;
+  --primary-subtle: rgba(232, 160, 69, 0.1);
+  --text: #111827;
+  --text-mid: #4b5563;
+  --text-light: #6b7280;
+  --bg: #ffffff;
+  --bg-light: #f9f8f6;
+  --bg-warm: #faf9f7;
+  --border: #e4e2df;
+  --border-light: #f0eeeb;
+  --dark: #111827;
+  --dark-surface: #1f2937;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow: 0 4px 12px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-lg: 0 10px 30px rgba(0,0,0,0.1), 0 4px 12px rgba(0,0,0,0.05);
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-lg: 16px;
+
+  --sans: 'Outfit', system-ui, sans-serif;
+  --heading: 'Bricolage Grotesque', system-ui, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
+  font: 17px/150% var(--sans);
+  letter-spacing: 0.01em;
   color-scheme: light;
   color: var(--text);
   background: var(--bg);
@@ -47,68 +60,72 @@ h1,
 h2,
 h3 {
   font-family: var(--heading);
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text);
+  line-height: 1.15;
 }
 
 h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
+  font-size: 52px;
+  letter-spacing: -1.5px;
   margin: 32px 0;
   @media (max-width: 1024px) {
     font-size: 36px;
+    letter-spacing: -1px;
     margin: 20px 0;
   }
 }
 
 h2 {
   font-size: 28px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
+  letter-spacing: -0.5px;
   margin: 24px 0 16px;
   @media (max-width: 1024px) {
-    font-size: 24px;
+    font-size: 22px;
   }
 }
 
 h3 {
-  font-size: 20px;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.2px;
   margin: 16px 0 8px;
 }
 
 p {
   margin: 0;
-  color: var(--text-light);
+  color: var(--text-mid);
 }
 
 a {
-  color: var(--primary);
+  color: var(--primary-dark);
   text-decoration: none;
-  transition: color 0.2s ease;
+  transition: color 0.15s ease;
 }
 
 a:hover {
-  color: #6f4c27;
+  color: var(--primary);
 }
 
 button {
   font-family: var(--sans);
-  font-size: 16px;
-  padding: 12px 24px;
+  font-size: 15px;
+  padding: 11px 22px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius);
   background: var(--primary);
   color: white;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s ease;
   font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 button:hover {
-  background: #d97706;
+  background: var(--primary-dark);
   cursor: pointer;
 }
 
 button:active {
-  opacity: 0.9;
+  transform: scale(0.98);
 }

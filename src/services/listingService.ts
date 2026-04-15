@@ -16,6 +16,7 @@ export interface Listing extends ListingInput {
   bannerImageUrl?: string;
   imageUrls?: string[];
   societyName: string;
+  societyType?: string;
   createdAt: string;
 }
 
@@ -170,17 +171,16 @@ export async function fetchListings(): Promise<Listing[]> {
     // Fetch society data for those users
     const { data: societies, error: societiesError } = await supabase
       .from('societies')
-      .select('user_id, name')
+      .select('user_id, name, society_type')
       .in('user_id', userIds);
 
     if (societiesError) {
       console.error('Error fetching societies:', societiesError);
     }
 
-    // Create a map of user_id to society name
-    const societyMap = new Map(
-      (societies || []).map((s: any) => [s.user_id, s.name])
-    );
+    // Create maps of user_id to society data
+    const societyNameMap = new Map((societies || []).map((s: any) => [s.user_id, s.name]));
+    const societyTypeMap = new Map((societies || []).map((s: any) => [s.user_id, s.society_type]));
 
     // Combine listings with society data
     return listings.map((item: any) => ({
@@ -193,7 +193,8 @@ export async function fetchListings(): Promise<Listing[]> {
       tags: item.tags,
       bannerImageUrl: item.banner_image_url,
       imageUrls: item.image_urls || [],
-      societyName: societyMap.get(item.user_id) || 'Unknown Society',
+      societyName: societyNameMap.get(item.user_id) || 'Unknown Society',
+      societyType: societyTypeMap.get(item.user_id) || undefined,
       createdAt: item.created_at,
     }));
   } catch (error) {
@@ -223,7 +224,7 @@ export async function fetchListingById(listingId: string): Promise<Listing | nul
     // Fetch society data for this user
     const { data: society, error: societyError } = await supabase
       .from('societies')
-      .select('name')
+      .select('name, society_type')
       .eq('user_id', listing.user_id)
       .single();
 
@@ -257,6 +258,7 @@ export async function fetchListingById(listingId: string): Promise<Listing | nul
       bannerImageUrl: listing.banner_image_url,
       imageUrls: imageUrls,
       societyName: society?.name || 'Unknown Society',
+      societyType: society?.society_type || undefined,
       createdAt: listing.created_at,
     };
   } catch (error) {
@@ -343,6 +345,45 @@ export async function updateListing(listingId: string, updates: Partial<ListingI
   } catch (error) {
     console.error('Error in updateListing:', error);
     return null;
+  }
+}
+
+// Fetch listings by user ID
+export async function fetchListingsByUserId(userId: string): Promise<Listing[]> {
+  try {
+    const { data, error } = await supabase
+      .from('listings')
+      .select('*')
+      .eq('user_id', userId)
+      .order('date', { ascending: true });
+
+    if (error) {
+      console.error('Error fetching listings by user:', error);
+      return [];
+    }
+
+    const { data: society } = await supabase
+      .from('societies')
+      .select('name')
+      .eq('user_id', userId)
+      .single();
+
+    return (data || []).map((item: any) => ({
+      id: item.id,
+      userId: item.user_id,
+      title: item.title,
+      description: item.description,
+      date: item.date,
+      peopleNeeded: item.people_needed,
+      tags: item.tags,
+      bannerImageUrl: item.banner_image_url,
+      imageUrls: item.image_urls || [],
+      societyName: society?.name || 'Unknown Society',
+      createdAt: item.created_at,
+    }));
+  } catch (error) {
+    console.error('Error in fetchListingsByUserId:', error);
+    return [];
   }
 }
 

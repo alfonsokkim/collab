@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 interface AuthContextType {
   user: any;
   loading: boolean;
-  signUp: (email: string, password: string, societyName: string) => Promise<void>;
+  signUp: (email: string, password: string, societyName: string, societyType: string) => Promise<void>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const signUp = async (email: string, password: string, societyName: string) => {
+  const signUp = async (email: string, password: string, societyName: string, societyType: string) => {
     try {
       const { error } = await supabase.auth.signUp({
         email,
@@ -51,6 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         options: {
           data: {
             society_name: societyName,
+            society_type: societyType,
           },
         },
       });

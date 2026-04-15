@@ -8,10 +8,11 @@ export function Landing() {
     <div className="landing">
       <section className="hero">
         <div className="hero-content">
-          <h1>Bringing Societies Together</h1>
+          <span className="hero-eyebrow">UNSW Society Collaboration</span>
+          <h1>Bringing Societies <em>Together</em></h1>
           <p className="hero-subtitle">
-            Connect UNSW societies for collaborative events.
-            Make bigger, better, more inclusive experiences for students.
+            Connect with UNSW societies to co-host events, share resources,
+            and build bigger experiences for students.
           </p>
           <div className="hero-buttons">
             <Link to="/listings" className="btn-primary">
@@ -22,37 +23,33 @@ export function Landing() {
             </Link>
           </div>
         </div>
-
-        <svg className="wave" viewBox="0 0 1200 120" preserveAspectRatio="none">
-          <path
-            d="M0,50 Q300,0 600,50 T1200,50 L1200,120 L0,120 Z"
-            fill="white"
-          />
-        </svg>
       </section>
 
+      <div className="hero-divider" />
+
       <section className="features">
+        <p className="features-label">Everything you need to collaborate</p>
         <div className="feature-container">
           <div className="feature-card">
             <div className="feature-icon">
-              <Users size={48} />
+              <Users size={22} />
             </div>
             <h3>Easy Collaboration</h3>
-            <p>Connect with other societies to create larger, more exciting events</p>
+            <p>Connect with other societies to create larger, more exciting events that reach more students.</p>
           </div>
           <div className="feature-card">
             <div className="feature-icon">
-              <Calendar size={48} />
+              <Calendar size={22} />
             </div>
             <h3>Event Listings</h3>
-            <p>Post what you're looking for and find the perfect partner societies</p>
+            <p>Post what you're looking for and find the perfect partner societies for your next event.</p>
           </div>
           <div className="feature-card">
             <div className="feature-icon">
-              <BarChart3 size={48} />
+              <BarChart3 size={22} />
             </div>
             <h3>Track History</h3>
-            <p>Keep records of your past collaborations and successful events</p>
+            <p>Keep records of past collaborations and build a reputation as a reliable partner.</p>
           </div>
         </div>
       </section>
@@ -61,12 +58,13 @@ export function Landing() {
         <h2>Ready to Collaborate?</h2>
         <p>Join societies across UNSW and create unforgettable experiences</p>
         <Link to="/listings" className="btn-primary">
-          Explore Listings Today
+          Explore Listings
         </Link>
-      <footer className="landing-footer">
-        <p>
-          made with love by <img src={ncsLogo} alt="No Code Society" className="ncs-logo" /></p>
-      </footer>
+        <footer className="landing-footer">
+          <p>
+            cos we couldnt find collabs...  <img src={ncsLogo} alt="No Code Society" className="ncs-logo" />
+          </p>
+        </footer>
       </section>
     </div>
   );
