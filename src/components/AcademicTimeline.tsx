@@ -122,20 +122,6 @@ const USYD_WEEKS: WeekCell[] = [
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function getWeekIndex(date: Date, weeks: WeekCell[]): number {
-  const t = date.getTime();
-  for (let i = 0; i < weeks.length; i++) {
-    const start = weeks[i].start.getTime();
-    const end = start + 7 * 24 * 60 * 60 * 1000;
-    if (t >= start && t < end) return i;
-  }
-  return -1;
-}
-
-function getCurrentWeekIndex(weeks: WeekCell[]): number {
-  return getWeekIndex(new Date(), weeks);
-}
-
 // ── Props ─────────────────────────────────────────────────────────────────────
 
 interface AcademicTimelineProps {
