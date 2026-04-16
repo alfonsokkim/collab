@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Outfit:wght@300;400;500;600;700&display=swap');
+@import "tailwindcss";
 
 :root {
   --primary: #e8a045;
@@ -15,117 +16,118 @@
   --border-light: #f0eeeb;
   --dark: #111827;
   --dark-surface: #1f2937;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow: 0 4px 12px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.04);
-  --shadow-lg: 0 10px 30px rgba(0,0,0,0.1), 0 4px 12px rgba(0,0,0,0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.07), 0 1px 3px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.1), 0 4px 12px rgba(0, 0, 0, 0.05);
   --radius: 10px;
   --radius-sm: 6px;
   --radius-lg: 16px;
-
   --sans: 'Outfit', system-ui, sans-serif;
   --heading: 'Bricolage Grotesque', system-ui, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
-
-  font: 17px/150% var(--sans);
-  letter-spacing: 0.01em;
-  color-scheme: light;
-  color: var(--text);
-  background: var(--bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  color-scheme: light;
+}
 
-  @media (max-width: 1024px) {
+html {
+  font-size: 17px;
+}
+
+@media (max-width: 1024px) {
+  html {
     font-size: 16px;
   }
 }
 
-#root {
-  width: 100%;
-  margin: 0 auto;
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
-  background: var(--bg);
-}
-
 body {
   margin: 0;
-  padding: 0;
-}
-
-h1,
-h2,
-h3 {
-  font-family: var(--heading);
-  font-weight: 700;
+  min-width: 320px;
+  background: var(--bg);
   color: var(--text);
-  line-height: 1.15;
-}
-
-h1 {
-  font-size: 52px;
-  letter-spacing: -1.5px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    letter-spacing: -1px;
-    margin: 20px 0;
-  }
-}
-
-h2 {
-  font-size: 28px;
-  letter-spacing: -0.5px;
-  margin: 24px 0 16px;
-  @media (max-width: 1024px) {
-    font-size: 22px;
-  }
-}
-
-h3 {
-  font-size: 19px;
-  font-weight: 600;
-  letter-spacing: -0.2px;
-  margin: 16px 0 8px;
-}
-
-p {
-  margin: 0;
-  color: var(--text-mid);
-}
-
-a {
-  color: var(--primary-dark);
-  text-decoration: none;
-  transition: color 0.15s ease;
-}
-
-a:hover {
-  color: var(--primary);
-}
-
-button {
   font-family: var(--sans);
-  font-size: 15px;
-  padding: 11px 22px;
-  border: none;
-  border-radius: var(--radius);
-  background: var(--primary);
-  color: white;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-weight: 600;
+  line-height: 1.5;
   letter-spacing: 0.01em;
 }
 
-button:hover {
-  background: var(--primary-dark);
+* {
+  box-sizing: border-box;
+}
+
+#root {
+  min-height: 100svh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
   cursor: pointer;
 }
 
-button:active {
-  transform: scale(0.98);
+main {
+  flex: 1;
+}
+
+.timeline-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.timeline-scroll::-webkit-scrollbar,
+.rm-list::-webkit-scrollbar,
+.gallery-thumbnails::-webkit-scrollbar {
+  height: 6px;
+  width: 6px;
+}
+
+.timeline-scroll::-webkit-scrollbar-track,
+.rm-list::-webkit-scrollbar-track,
+.gallery-thumbnails::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.timeline-scroll::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.rm-list::-webkit-scrollbar-thumb,
+.gallery-thumbnails::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+}
+
+@keyframes gallerySlideRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes gallerySlideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }

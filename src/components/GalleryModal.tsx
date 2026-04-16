@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
-import './GalleryModal.css';
+import { cn } from '../lib/utils';
 
 interface GalleryModalProps {
   images: string[];
@@ -37,8 +37,7 @@ export function GalleryModal({ images, initialIndex = 0, onClose }: GalleryModal
 
   const goToImage = (index: number) => {
     if (isAnimating || index === currentIndex) return;
-    const direction = index > currentIndex ? 'right' : 'left';
-    setSlideDirection(direction);
+    setSlideDirection(index > currentIndex ? 'right' : 'left');
     setIsAnimating(true);
     setTimeout(() => {
       setCurrentIndex(index);
@@ -46,87 +45,91 @@ export function GalleryModal({ images, initialIndex = 0, onClose }: GalleryModal
     }, 200);
   };
 
-  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight') {
-        handleNext();
-      } else if (e.key === 'ArrowLeft') {
-        handlePrev();
-      } else if (e.key === 'Escape') {
-        onClose();
-      }
+      if (e.key === 'ArrowRight') handleNext();
+      else if (e.key === 'ArrowLeft') handlePrev();
+      else if (e.key === 'Escape') onClose();
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isAnimating]);
-
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
+  });
 
   return (
-    <div className="modal-backdrop" onClick={handleBackdropClick}>
-      <div className="modal-content">
-        <button className="modal-close-btn" onClick={onClose} aria-label="Close modal">
+    <div
+      className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/90"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="relative flex h-[90vh] w-[90%] max-w-[1200px] flex-col items-center justify-center md:h-[95vh] md:w-[95%]">
+        <button
+          className="absolute right-0 top-[-50px] z-[2001] flex items-center justify-center bg-transparent p-2 text-white transition hover:opacity-80 md:right-2 md:top-2"
+          onClick={onClose}
+          aria-label="Close modal"
+        >
           <X size={28} />
         </button>
 
-        <div className="modal-main-container">
+        <div className="relative mb-20 flex h-full w-full items-center justify-center gap-6 md:mb-24">
           <button
-            className="modal-chevron modal-chevron-left"
+            className="absolute left-0 top-1/2 z-[100] flex -translate-y-1/2 items-center justify-center rounded-lg bg-white/20 p-3 text-white transition hover:bg-white/30 disabled:cursor-not-allowed disabled:opacity-50 md:p-2"
             onClick={handlePrev}
             disabled={isAnimating}
             aria-label="Previous image"
           >
-            <ChevronLeft size={40} />
+            <ChevronLeft size={40} className="md:h-7 md:w-7" />
           </button>
 
-          <div className="modal-main-image-wrapper">
+          <div className="relative flex h-full w-full items-center justify-center overflow-hidden">
             <img
               key={currentIndex}
               src={images[currentIndex]}
               alt={`Gallery image ${currentIndex + 1}`}
-              className={`modal-main-image ${
-                slideDirection === 'right'
-                  ? 'slide-in-from-right'
-                  : slideDirection === 'left'
-                    ? 'slide-in-from-left'
-                    : ''
-              }`}
+              className="max-h-full max-w-full object-contain"
+              style={{
+                animation:
+                  slideDirection === 'right'
+                    ? 'gallerySlideRight 0.2s ease-out forwards'
+                    : slideDirection === 'left'
+                      ? 'gallerySlideLeft 0.2s ease-out forwards'
+                      : undefined,
+              }}
             />
           </div>
 
           <button
-            className="modal-chevron modal-chevron-right"
+            className="absolute right-0 top-1/2 z-[100] flex -translate-y-1/2 items-center justify-center rounded-lg bg-white/20 p-3 text-white transition hover:bg-white/30 disabled:cursor-not-allowed disabled:opacity-50 md:p-2"
             onClick={handleNext}
             disabled={isAnimating}
             aria-label="Next image"
           >
-            <ChevronRight size={40} />
+            <ChevronRight size={40} className="md:h-7 md:w-7" />
           </button>
         </div>
 
-        <div className="modal-thumbnails-container">
-          <div className="modal-thumbnails">
+        <div className="absolute bottom-0 left-1/2 w-full -translate-x-1/2 rounded-t-lg bg-black/40 p-5">
+          <div className="gallery-thumbnails flex max-w-full justify-center gap-3 overflow-x-auto py-2 md:gap-2">
             {images.map((image, index) => (
               <button
                 key={index}
-                className={`modal-thumbnail ${index === currentIndex ? 'active' : ''}`}
+                className={cn(
+                  'h-20 w-20 shrink-0 overflow-hidden rounded border-2 bg-transparent p-0 opacity-60 transition hover:opacity-80 disabled:cursor-not-allowed',
+                  index === currentIndex ? 'border-white opacity-100' : 'border-transparent',
+                  'md:h-[60px] md:w-[60px]',
+                )}
                 onClick={() => goToImage(index)}
                 aria-label={`Go to image ${index + 1}`}
                 disabled={isAnimating}
               >
-                <img src={image} alt={`Thumbnail ${index + 1}`} />
+                <img src={image} alt={`Thumbnail ${index + 1}`} className="h-full w-full object-cover" />
               </button>
             ))}
           </div>
         </div>
 
-        <div className="modal-counter">
+        <div className="absolute bottom-5 right-5 rounded bg-black/50 px-3 py-2 text-sm font-medium text-white">
           {currentIndex + 1} / {images.length}
         </div>
       </div>

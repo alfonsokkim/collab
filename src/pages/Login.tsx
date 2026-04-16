@@ -1,8 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, AlertCircle } from 'lucide-react';
+import { AlertCircle, Lock, Mail } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import '../styles/Login.css';
 
 export function Login() {
   const [email, setEmail] = useState('');
@@ -28,25 +27,27 @@ export function Login() {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <div className="login-header">
-          <h1>Login</h1>
-          <p>Sign in to your society account</p>
+    <div className="flex min-h-[calc(100vh-60px)] items-center justify-center bg-[var(--bg-light)] px-6 py-10">
+      <div className="w-full max-w-[400px] rounded-[var(--radius-lg)] border border-[var(--border)] bg-white px-6 py-8 shadow-[var(--shadow-lg)] sm:px-10 sm:py-11">
+        <div className="mb-8 text-center">
+          <h1 className="mb-2 font-[var(--heading)] text-[28px] text-[var(--text)]">Login</h1>
+          <p className="text-sm text-[var(--text-light)]">Sign in to your society account</p>
         </div>
 
         {error && (
-          <div className="error-message">
-            <AlertCircle size={18} />
+          <div className="mb-5 flex items-center gap-2.5 rounded-[var(--radius)] border border-red-200 bg-red-50 px-3.5 py-[11px] text-[13px] text-red-600">
+            <AlertCircle size={18} className="shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="login-form">
-          <div className="form-group">
-            <label htmlFor="email">Email Address</label>
-            <div className="input-wrapper">
-              <Mail size={20} />
+        <form onSubmit={handleSubmit} className="flex flex-col gap-5">
+          <div className="flex flex-col gap-[7px]">
+            <label htmlFor="email" className="text-[13px] font-semibold text-[var(--text)]">
+              Email Address
+            </label>
+            <div className="flex items-center gap-2.5 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg-light)] px-3.5 py-[11px] transition focus-within:border-[var(--primary)] focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(232,160,69,0.12)]">
+              <Mail size={20} className="shrink-0 text-[var(--text-light)]" />
               <input
                 type="email"
                 id="email"
@@ -55,14 +56,17 @@ export function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={loading}
                 required
+                className="w-full border-none bg-transparent text-[15px] text-[var(--text)] outline-none placeholder:text-[var(--text-light)] disabled:text-[var(--text-light)]"
               />
             </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <div className="input-wrapper">
-              <Lock size={20} />
+          <div className="flex flex-col gap-[7px]">
+            <label htmlFor="password" className="text-[13px] font-semibold text-[var(--text)]">
+              Password
+            </label>
+            <div className="flex items-center gap-2.5 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg-light)] px-3.5 py-[11px] transition focus-within:border-[var(--primary)] focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(232,160,69,0.12)]">
+              <Lock size={20} className="shrink-0 text-[var(--text-light)]" />
               <input
                 type="password"
                 id="password"
@@ -71,19 +75,24 @@ export function Login() {
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={loading}
                 required
+                className="w-full border-none bg-transparent text-[15px] text-[var(--text)] outline-none placeholder:text-[var(--text-light)] disabled:text-[var(--text-light)]"
               />
             </div>
           </div>
 
-          <button type="submit" className="login-btn" disabled={loading}>
+          <button
+            type="submit"
+            className="mt-1 rounded-[var(--radius)] bg-[var(--dark)] px-6 py-3 text-[15px] font-semibold text-white transition hover:-translate-y-px hover:bg-[var(--dark-surface)] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0"
+            disabled={loading}
+          >
             {loading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
 
-        <div className="login-footer">
+        <div className="mt-6 text-center text-[13px] text-[var(--text-light)]">
           <p>
             Don't have an account?{' '}
-            <Link to="/signup" className="signup-link">
+            <Link to="/signup" className="font-semibold text-[var(--primary-dark)] hover:text-[var(--primary)]">
               Sign up now
             </Link>
           </p>

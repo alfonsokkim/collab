@@ -1,10 +1,20 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
-import { Calendar, Users, ArrowLeft, AlertCircle, Edit2, Save, X, Trash2, Image as ImageIcon } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import {
+  AlertCircle,
+  ArrowLeft,
+  Calendar,
+  Edit2,
+  Image as ImageIcon,
+  Save,
+  Trash2,
+  Users,
+  X,
+} from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { GalleryModal } from '../components/GalleryModal';
-import { fetchListingById, updateListing, deleteListing } from '../services/listingService';
-import '../styles/ListingDetail.css';
+import { cn } from '../lib/utils';
+import { deleteListing, fetchListingById, updateListing } from '../services/listingService';
 
 interface ListingData {
   id: string;
@@ -21,8 +31,45 @@ interface ListingData {
   createdAt: string;
 }
 
-const ALL_TAGS = ['Social', 'Events', 'Pubcrawl', 'Tech', 'Networking', 'Sports', 'Outdoor', 'Competition', 'Culture', 'Festival', 'Community'];
+const ALL_TAGS = [
+  'Social',
+  'Events',
+  'Pubcrawl',
+  'Tech',
+  'Networking',
+  'Sports',
+  'Outdoor',
+  'Competition',
+  'Culture',
+  'Festival',
+  'Community',
+];
 const MAX_IMAGES = 8;
+
+const inputClass =
+  'w-full rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg-light)] px-3.5 py-[11px] text-[15px] text-[var(--text)] transition outline-none placeholder:text-[var(--text-light)] focus:border-[var(--primary)] focus:bg-white focus:shadow-[0_0_0_3px_rgba(232,160,69,0.12)]';
+
+function InfoItem({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: React.ComponentType<{ size?: number; className?: string }>;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="flex items-start gap-3.5">
+      <Icon size={24} className="mt-0.5 shrink-0 text-[var(--primary)]" />
+      <div className="flex flex-col gap-1">
+        <label className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[var(--text-light)]">
+          {label}
+        </label>
+        <p className="text-[15px] font-medium text-[var(--text)]">{value}</p>
+      </div>
+    </div>
+  );
+}
 
 export function ListingDetail() {
   const { id } = useParams<{ id: string }>();
@@ -118,41 +165,36 @@ export function ListingDetail() {
           canvas.width = size;
           canvas.height = size;
           const ctx = canvas.getContext('2d');
-          if (ctx) {
-            const offsetX = (img.width - size) / 2;
-            const offsetY = (img.height - size) / 2;
-            ctx.drawImage(img, offsetX, offsetY, size, size, 0, 0, size, size);
-            const base64 = canvas.toDataURL('image/jpeg', 0.8);
-            setImages(prev => [...prev, base64]);
-            setError('');
-          }
+          if (!ctx) return;
+          const offsetX = (img.width - size) / 2;
+          const offsetY = (img.height - size) / 2;
+          ctx.drawImage(img, offsetX, offsetY, size, size, 0, 0, size, size);
+          setImages((prev) => [...prev, canvas.toDataURL('image/jpeg', 0.8)]);
+          setError('');
         };
         img.src = event.target?.result as string;
       };
       reader.readAsDataURL(file);
     });
 
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+    setImages((prev) => prev.filter((_, i) => i !== index));
   };
 
   const toggleTag = (tag: string) => {
     setEditForm({
       ...editForm,
       tags: editForm.tags?.includes(tag)
-        ? editForm.tags.filter(t => t !== tag)
+        ? editForm.tags.filter((t) => t !== tag)
         : [...(editForm.tags || []), tag],
     });
   };
 
   const handleSave = async () => {
     if (!listing) return;
-
     if (!editForm.title?.trim()) {
       setError('Title is required');
       return;
@@ -182,6 +224,7 @@ export function ListingDetail() {
           bannerImageUrl: updated.bannerImageUrl,
           imageUrls: updated.imageUrls || [],
           societyName: updated.societyName,
+          societyType: updated.societyType,
           userId: updated.userId,
           createdAt: updated.createdAt,
         });
@@ -203,11 +246,8 @@ export function ListingDetail() {
 
     try {
       const success = await deleteListing(listing.id);
-      if (success) {
-        navigate('/listings');
-      } else {
-        setError('Failed to delete listing');
-      }
+      if (success) navigate('/listings');
+      else setError('Failed to delete listing');
     } catch (err: any) {
       setError(err.message || 'Failed to delete listing');
     } finally {
@@ -215,45 +255,67 @@ export function ListingDetail() {
     }
   };
 
-  // Render image gallery grid
   const renderImageGallery = () => {
     if (!listing) return null;
-    const images = listing.imageUrls && listing.imageUrls.length > 0 ? listing.imageUrls : (listing.bannerImageUrl ? [listing.bannerImageUrl] : []);
-    console.log('renderImageGallery - listing.imageUrls:', listing.imageUrls, 'images array:', images);
+    const galleryImages =
+      listing.imageUrls && listing.imageUrls.length > 0
+        ? listing.imageUrls
+        : listing.bannerImageUrl
+          ? [listing.bannerImageUrl]
+          : [];
 
-    if (images.length === 0) {
-      return null;
-    }
+    if (galleryImages.length === 0) return null;
 
-    if (images.length === 1) {
+    if (galleryImages.length === 1) {
       return (
-        <div className="single-image" onClick={() => { setGalleryStartIndex(0); setGalleryOpen(true); }}>
-          <img src={images[0]} alt={listing.title} />
+        <div
+          className="mb-8 w-full max-w-[560px] cursor-pointer overflow-hidden rounded-[var(--radius-lg)] transition hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+          onClick={() => {
+            setGalleryStartIndex(0);
+            setGalleryOpen(true);
+          }}
+        >
+          <img src={galleryImages[0]} alt={listing.title} className="block h-auto w-full object-contain" />
         </div>
       );
     }
 
-    // Multiple images - show grid layout
-    const mainImage = images[0];
-    const thumbnails = images.slice(1, 5);
+    const mainImage = galleryImages[0];
+    const thumbnails = galleryImages.slice(1, 5);
 
     return (
-      <div className="listing-images-grid">
-        <div className="main-image" onClick={() => { setGalleryStartIndex(0); setGalleryOpen(true); }}>
-          <img src={mainImage} alt={listing.title} />
+      <div className="mb-9 flex w-fit items-start gap-4 max-md:w-full max-md:flex-col max-md:gap-3">
+        <div
+          className="h-[280px] w-[280px] shrink-0 cursor-pointer overflow-hidden rounded-[var(--radius-lg)] transition hover:shadow-[0_8px_24px_rgba(0,0,0,0.14)] max-md:h-auto max-md:w-full max-md:aspect-square"
+          onClick={() => {
+            setGalleryStartIndex(0);
+            setGalleryOpen(true);
+          }}
+        >
+          <img src={mainImage} alt={listing.title} className="h-full w-full object-cover" />
         </div>
 
-        <div className="thumbnail-grid">
+        <div className="grid w-fit grid-cols-2 gap-2.5 max-md:w-full max-md:grid-cols-2">
           {thumbnails.map((image, idx) => (
             <div
               key={idx}
-              className="thumbnail-cell"
-              onClick={() => { setGalleryStartIndex(idx + 1); setGalleryOpen(true); }}
+              className="relative h-[134px] w-[134px] cursor-pointer overflow-hidden rounded-[var(--radius)] bg-[var(--bg-light)] transition hover:shadow-[0_4px_12px_rgba(0,0,0,0.1)] max-md:h-auto max-md:w-full max-md:aspect-square"
+              onClick={() => {
+                setGalleryStartIndex(idx + 1);
+                setGalleryOpen(true);
+              }}
             >
-              <img src={image} alt={`${listing.title} ${idx + 2}`} />
-              {idx === 3 && images.length > 4 && (
-                <div className="view-more-overlay">
-                  <button className="view-more-btn" onClick={(e) => { e.stopPropagation(); setGalleryStartIndex(3); setGalleryOpen(true); }}>
+              <img src={image} alt={`${listing.title} ${idx + 2}`} className="h-full w-full object-cover" />
+              {idx === 3 && galleryImages.length > 4 && (
+                <div className="absolute inset-0 flex items-center justify-center rounded-[var(--radius)] bg-black/55 backdrop-blur-sm">
+                  <button
+                    className="rounded-[var(--radius-sm)] bg-white px-5 py-2.5 text-[13px] font-bold text-[var(--text)] transition hover:bg-[var(--primary)] hover:text-white"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setGalleryStartIndex(3);
+                      setGalleryOpen(true);
+                    }}
+                  >
                     View more
                   </button>
                 </div>
@@ -265,25 +327,40 @@ export function ListingDetail() {
     );
   };
 
-  const isOwner = user && listing && user.id === listing.userId;
-  console.log('ListingDetail render - isOwner:', isOwner, 'isEditing:', isEditing, 'listing:', listing);
+  const isOwner = !!(user && listing && user.id === listing.userId);
+  const eventDate = listing
+    ? new Date(listing.date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : '';
 
   if (loading) {
     return (
-      <div className="listing-detail">
-        <div className="detail-loading">Loading listing...</div>
+      <div className="mx-auto max-w-[960px] px-4 py-10 md:px-7">
+        <div className="flex min-h-[300px] items-center justify-center text-[15px] text-[var(--text-light)]">
+          Loading listing...
+        </div>
       </div>
     );
   }
 
+  const BackButton = (
+    <button
+      onClick={() => navigate('/listings')}
+      className="mb-7 inline-flex items-center gap-1.5 rounded-[var(--radius)] border border-[var(--border)] bg-transparent px-4 py-[9px] text-sm font-medium text-[var(--text-mid)] transition hover:border-[var(--text-light)] hover:bg-[var(--bg-light)] hover:text-[var(--text)]"
+    >
+      <ArrowLeft size={20} />
+      Back to Listings
+    </button>
+  );
+
   if (error && !listing) {
     return (
-      <div className="listing-detail">
-        <button onClick={() => navigate('/listings')} className="back-btn">
-          <ArrowLeft size={20} />
-          Back to Listings
-        </button>
-        <div className="error-box">
+      <div className="mx-auto max-w-[960px] px-4 py-10 md:px-7">
+        {BackButton}
+        <div className="flex items-center gap-3 rounded-[var(--radius-lg)] border border-red-200 bg-red-50 p-6 text-red-600">
           <AlertCircle size={24} />
           <p>{error || 'Listing not found'}</p>
         </div>
@@ -293,12 +370,9 @@ export function ListingDetail() {
 
   if (!listing) {
     return (
-      <div className="listing-detail">
-        <button onClick={() => navigate('/listings')} className="back-btn">
-          <ArrowLeft size={20} />
-          Back to Listings
-        </button>
-        <div className="error-box">
+      <div className="mx-auto max-w-[960px] px-4 py-10 md:px-7">
+        {BackButton}
+        <div className="flex items-center gap-3 rounded-[var(--radius-lg)] border border-red-200 bg-red-50 p-6 text-red-600">
           <AlertCircle size={24} />
           <p>Listing not found</p>
         </div>
@@ -306,318 +380,278 @@ export function ListingDetail() {
     );
   }
 
-  const eventDate = new Date(listing.date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-  });
+  return (
+    <div className="mx-auto max-w-[960px] px-4 py-10 md:px-7">
+      {BackButton}
 
-  if (isOwner && isEditing) {
-    return (
-      <div className="listing-detail">
-        <button onClick={() => navigate('/listings')} className="back-btn">
-          <ArrowLeft size={20} />
-          Back to Listings
-        </button>
-
-        <div className="detail-card admin-card">
-          <div className="detail-header">
-            <h1>Edit Listing</h1>
-          </div>
-
-          {error && (
-            <div className="error-message">
-              <AlertCircle size={18} />
-              <span>{error}</span>
-            </div>
-          )}
-
-          <div className="edit-form">
-            <div className="form-group">
-              <label>Title</label>
-              <input
-                type="text"
-                value={editForm.title || ''}
-                onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
-                placeholder="Listing title"
-              />
+      <div
+        className={cn(
+          'rounded-[var(--radius-lg)] border bg-white p-5 shadow-[var(--shadow-sm)] md:p-10',
+          isOwner ? 'border-[rgba(232,160,69,0.3)]' : 'border-[var(--border)]',
+        )}
+      >
+        {isOwner && isEditing ? (
+          <>
+            <div className="mb-8">
+              <h1 className="text-[var(--text)]">Edit Listing</h1>
             </div>
 
-            <div className="form-group">
-              <label>Description</label>
-              <textarea
-                value={editForm.description || ''}
-                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                placeholder="Event description"
-                rows={5}
-              />
-            </div>
+            {error && (
+              <div className="mb-5 flex items-center gap-2.5 rounded-[var(--radius)] border border-red-200 bg-red-50 px-3.5 py-[11px] text-[13px] text-red-600">
+                <AlertCircle size={18} className="shrink-0" />
+                <span>{error}</span>
+              </div>
+            )}
 
-            <div className="form-row">
-              <div className="form-group">
-                <label>Date</label>
+            <div className="flex flex-col gap-[22px]">
+              <div className="flex flex-col gap-[7px]">
+                <label className="text-[13px] font-semibold text-[var(--text)]">Title</label>
                 <input
-                  type="date"
-                  value={editForm.date || ''}
-                  onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
+                  type="text"
+                  value={editForm.title || ''}
+                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                  placeholder="Listing title"
+                  className={inputClass}
                 />
               </div>
-              <div className="form-group">
-                <label>Attendance</label>
-                <input
-                  type="number"
-                  value={editForm.peopleNeeded || 0}
-                  onChange={(e) => setEditForm({ ...editForm, peopleNeeded: parseInt(e.target.value) })}
-                  min="1"
+
+              <div className="flex flex-col gap-[7px]">
+                <label className="text-[13px] font-semibold text-[var(--text)]">Description</label>
+                <textarea
+                  value={editForm.description || ''}
+                  onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                  placeholder="Event description"
+                  rows={5}
+                  className={`${inputClass} min-h-[120px] resize-y`}
                 />
               </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="flex flex-col gap-[7px]">
+                  <label className="text-[13px] font-semibold text-[var(--text)]">Date</label>
+                  <input
+                    type="date"
+                    value={editForm.date || ''}
+                    onChange={(e) => setEditForm({ ...editForm, date: e.target.value })}
+                    className={inputClass}
+                  />
+                </div>
+                <div className="flex flex-col gap-[7px]">
+                  <label className="text-[13px] font-semibold text-[var(--text)]">Attendance</label>
+                  <input
+                    type="number"
+                    value={editForm.peopleNeeded || 0}
+                    onChange={(e) =>
+                      setEditForm({ ...editForm, peopleNeeded: parseInt(e.target.value || '0', 10) })
+                    }
+                    min="1"
+                    className={inputClass}
+                  />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-[7px]">
+                <label className="text-[13px] font-semibold text-[var(--text)]">Event Type</label>
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4">
+                  {ALL_TAGS.map((tag) => (
+                    <button
+                      key={tag}
+                      type="button"
+                      className={cn(
+                        'rounded-[var(--radius)] border px-3.5 py-2.5 text-[13px] font-medium transition',
+                        editForm.tags?.includes(tag)
+                          ? 'border-[rgba(232,160,69,0.35)] bg-[var(--primary-subtle)] font-semibold text-[var(--primary-dark)]'
+                          : 'border-[var(--border)] bg-[var(--bg-light)] text-[var(--text-mid)] hover:border-[var(--primary)] hover:bg-[var(--primary-subtle)] hover:text-[var(--primary-dark)]',
+                      )}
+                      onClick={() => toggleTag(tag)}
+                    >
+                      {tag}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-[7px]">
+                <label className="text-[13px] font-semibold text-[var(--text)]">Event Images</label>
+                <p className="text-xs text-[var(--text-light)]">
+                  Upload square images (1:1). We&apos;ll crop automatically if needed. Up to {MAX_IMAGES} images.
+                </p>
+
+                {images.length > 0 ? (
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    {images.map((image, idx) => (
+                      <div
+                        key={idx}
+                        className="relative aspect-square overflow-hidden rounded-[var(--radius)] shadow-[var(--shadow)]"
+                      >
+                        <img src={image} alt={`Preview ${idx + 1}`} className="h-full w-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(idx)}
+                          className="absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white transition hover:bg-black/90 disabled:cursor-not-allowed disabled:opacity-50"
+                          disabled={saving}
+                          aria-label={`Remove image ${idx + 1}`}
+                        >
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ))}
+
+                    {images.length < MAX_IMAGES && (
+                      <div className="aspect-square">
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          id="images"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          disabled={saving}
+                          className="hidden"
+                          multiple
+                        />
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="flex h-full w-full flex-col items-center justify-center gap-2 rounded-[var(--radius)] border border-dashed border-[var(--border)] bg-[var(--bg-light)] p-4 text-[var(--text)] transition hover:border-[var(--primary)] hover:bg-[var(--primary-subtle)] disabled:cursor-not-allowed disabled:opacity-50"
+                          disabled={saving}
+                        >
+                          <ImageIcon size={24} className="text-[var(--text-light)]" />
+                          <span className="text-sm font-semibold">Add Image</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="rounded-[var(--radius)] border border-dashed border-[var(--border)] bg-[var(--bg-light)] px-5 py-9 text-center transition hover:border-[var(--primary)] hover:bg-[var(--primary-subtle)]">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      id="images"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      disabled={saving}
+                      className="hidden"
+                      multiple
+                    />
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex w-full flex-col items-center gap-2.5 bg-transparent p-0 text-center text-[var(--text)] disabled:cursor-not-allowed disabled:opacity-50"
+                      disabled={saving}
+                    >
+                      <ImageIcon size={32} className="text-[var(--text-light)]" />
+                      <span className="text-[15px] font-semibold text-[var(--text)]">
+                        Click to upload or drag and drop
+                      </span>
+                      <span className="text-xs text-[var(--text-light)]">
+                        PNG, JPG, GIF up to 5MB (up to {MAX_IMAGES} images)
+                      </span>
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-5 flex flex-col gap-2.5 md:flex-row">
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="inline-flex items-center justify-center gap-2 rounded-[var(--radius)] bg-[var(--dark)] px-[22px] py-[11px] text-sm font-semibold text-white transition hover:bg-[var(--dark-surface)] disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <Save size={18} />
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="inline-flex items-center justify-center gap-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg-light)] px-[22px] py-[11px] text-sm font-semibold text-[var(--text-mid)] transition hover:bg-[var(--border-light)] hover:text-[var(--text)]"
+                >
+                  <X size={18} />
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  disabled={saving}
+                  className="inline-flex items-center justify-center gap-2 rounded-[var(--radius)] border border-red-200 bg-red-50 px-[22px] py-[11px] text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-50 md:ml-auto"
+                >
+                  <Trash2 size={18} />
+                  Delete
+                </button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <>
+            {renderImageGallery()}
+
+            <div className={cn('mb-8 max-w-[640px]', isOwner && 'flex max-w-none items-start justify-between gap-6 max-md:flex-col')}>
+              <div className="flex-1">
+                <div className="mb-2">
+                  <h1 className="text-[34px] text-[var(--text)] max-md:text-[26px]">{listing.title}</h1>
+                </div>
+                <div className="mb-1.5 flex items-center gap-2">
+                  <p className="text-[15px] font-semibold text-[var(--text-mid)]">{listing.societyName}</p>
+                  {listing.societyType && (
+                    <span className="inline-block rounded-full border border-[rgba(232,160,69,0.4)] bg-[rgba(232,160,69,0.2)] px-3 py-1 text-xs font-semibold tracking-[0.04em] text-[var(--primary)]">
+                      {listing.societyType}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[13px] text-[var(--text-light)]">Posted on {eventDate}</p>
+              </div>
+
+              {isOwner && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="inline-flex shrink-0 items-center gap-2 rounded-[var(--radius)] bg-[var(--dark)] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[var(--dark-surface)] max-md:w-full max-md:justify-center"
+                >
+                  <Edit2 size={18} />
+                  Edit
+                </button>
+              )}
             </div>
 
-            <div className="form-group">
-              <label>Event Type</label>
-              <div className="tags-grid">
-                {ALL_TAGS.map(tag => (
-                  <button
+            <div className="mb-8 grid max-w-[640px] gap-5 border-y border-[var(--border-light)] py-5 md:grid-cols-2">
+              <InfoItem icon={Calendar} label="Date" value={eventDate} />
+              <InfoItem icon={Users} label="Attendance" value={`${listing.peopleNeeded} people`} />
+            </div>
+
+            <div className="mb-8 max-w-[640px]">
+              <h2 className="mb-3.5 text-sm font-bold uppercase tracking-[0.08em] text-[var(--text-light)]">
+                About This Event
+              </h2>
+              <p className="text-[15px] leading-7 text-[var(--text-mid)]">{listing.description}</p>
+            </div>
+
+            <div className="mb-8 max-w-[640px]">
+              <h2 className="mb-3.5 text-sm font-bold uppercase tracking-[0.08em] text-[var(--text-light)]">
+                Event Type
+              </h2>
+              <div className="flex flex-wrap gap-2">
+                {listing.tags.map((tag) => (
+                  <span
                     key={tag}
-                    type="button"
-                    className={`tag-button ${editForm.tags?.includes(tag) ? 'active' : ''}`}
-                    onClick={() => toggleTag(tag)}
+                    className="inline-flex items-center rounded-full bg-[var(--primary-subtle)] px-3.5 py-1.5 text-[13px] font-semibold text-[var(--primary-dark)]"
                   >
                     {tag}
-                  </button>
+                  </span>
                 ))}
               </div>
             </div>
 
-            <div className="form-group">
-              <label>Event Images</label>
-              <p className="field-hint">Upload square images (1:1). We'll crop automatically if needed. Up to {MAX_IMAGES} images.</p>
-              {images.length > 0 ? (
-                <div className="images-preview-grid">
-                  {images.map((image, idx) => (
-                    <div key={idx} className="image-preview-item">
-                      <img src={image} alt={`Preview ${idx + 1}`} />
-                      <button
-                        type="button"
-                        onClick={() => removeImage(idx)}
-                        className="remove-image-btn"
-                        disabled={saving}
-                        aria-label={`Remove image ${idx + 1}`}
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  ))}
-                  {images.length < MAX_IMAGES && (
-                    <div className="add-image-cell">
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        id="images"
-                        accept="image/*"
-                        onChange={handleImageUpload}
-                        disabled={saving}
-                        style={{ display: 'none' }}
-                        multiple
-                      />
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="add-image-btn"
-                        disabled={saving}
-                      >
-                        <ImageIcon size={24} />
-                        <span>Add Image</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="image-upload-area">
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    id="images"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    disabled={saving}
-                    style={{ display: 'none' }}
-                    multiple
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="upload-btn"
-                    disabled={saving}
-                  >
-                    <ImageIcon size={32} />
-                    <span>Click to upload or drag and drop</span>
-                    <span className="text-small">PNG, JPG, GIF up to 5MB (up to {MAX_IMAGES} images)</span>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <div className="form-actions">
-              <button onClick={handleSave} disabled={saving} className="save-btn">
-                <Save size={18} />
-                {saving ? 'Saving...' : 'Save Changes'}
-              </button>
-              <button onClick={() => setIsEditing(false)} className="cancel-btn">
-                <X size={18} />
-                Cancel
-              </button>
-              <button onClick={handleDelete} disabled={saving} className="delete-btn">
-                <Trash2 size={18} />
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (isOwner) {
-    return (
-      <div className="listing-detail">
-        <button onClick={() => navigate('/listings')} className="back-btn">
-          <ArrowLeft size={20} />
-          Back to Listings
-        </button>
-
-        <div className="detail-card admin-card">
-          {renderImageGallery()}
-          <div className="detail-header admin-header">
-            <div>
-              <div className="detail-title-section">
-                <h1>{listing.title}</h1>
-                <div className="detail-society-row">
-                  <p className="detail-society">{listing.societyName}</p>
-                  {listing.societyType && (
-                    <span className="society-type-badge">{listing.societyType}</span>
-                  )}
-                </div>
-                <p className="detail-posted">Posted on {eventDate}</p>
+            {!isOwner && (
+              <div className="max-w-[640px]">
+                <h2 className="mb-3.5 text-sm font-bold uppercase tracking-[0.08em] text-[var(--text-light)]">
+                  Interested?
+                </h2>
+                <p className="mb-4 text-[15px] leading-[1.65] text-[var(--text-mid)]">
+                  Contact {listing.societyName} to express your interest in collaborating on this event!
+                </p>
+                <button className="inline-flex items-center rounded-[var(--radius)] bg-[var(--dark)] px-7 py-3 text-[15px] font-semibold text-white transition hover:-translate-y-px hover:bg-[var(--dark-surface)]">
+                  Express Interest
+                </button>
               </div>
-            </div>
-            <button onClick={() => setIsEditing(true)} className="edit-btn">
-              <Edit2 size={18} />
-              Edit
-            </button>
-          </div>
-
-          <div className="detail-info-grid">
-            <div className="info-item">
-              <Calendar size={24} />
-              <div>
-                <label>Date</label>
-                <p>{eventDate}</p>
-              </div>
-            </div>
-            <div className="info-item">
-              <Users size={24} />
-              <div>
-                <label>Attendance</label>
-                <p>{listing.peopleNeeded} people</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="detail-section">
-            <h2>About This Event</h2>
-            <p className="detail-description">{listing.description}</p>
-          </div>
-
-          <div className="detail-section">
-            <h2>Event Type</h2>
-            <div className="detail-tags">
-              {listing.tags.map(tag => (
-                <span key={tag} className="detail-tag">
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {galleryOpen && listing.imageUrls && listing.imageUrls.length > 0 && (
-          <GalleryModal
-            images={listing.imageUrls}
-            initialIndex={galleryStartIndex}
-            onClose={() => setGalleryOpen(false)}
-          />
+            )}
+          </>
         )}
-      </div>
-    );
-  }
-
-  console.log('Rendering public view for listing:', listing?.id);
-  return (
-    <div className="listing-detail">
-      <button onClick={() => navigate('/listings')} className="back-btn">
-        <ArrowLeft size={20} />
-        Back to Listings
-      </button>
-
-      <div className="detail-card">
-        {renderImageGallery()}
-
-        <div className="detail-header">
-          <div className="detail-title-section">
-            <h1>{listing.title}</h1>
-            <div className="detail-society-row">
-              <p className="detail-society">{listing.societyName}</p>
-              {listing.societyType && (
-                <span className="society-type-badge">{listing.societyType}</span>
-              )}
-            </div>
-            <p className="detail-posted">Posted on {eventDate}</p>
-          </div>
-        </div>
-
-        <div className="detail-info-grid">
-          <div className="info-item">
-            <Calendar size={24} />
-            <div>
-              <label>Date</label>
-              <p>{eventDate}</p>
-            </div>
-          </div>
-          <div className="info-item">
-            <Users size={24} />
-            <div>
-              <label>Attendance</label>
-              <p>{listing.peopleNeeded} people</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="detail-section">
-          <h2>About This Event</h2>
-          <p className="detail-description">{listing.description}</p>
-        </div>
-
-        <div className="detail-section">
-          <h2>Event Type</h2>
-          <div className="detail-tags">
-            {listing.tags.map(tag => (
-              <span key={tag} className="detail-tag">
-                {tag}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        <div className="detail-section">
-          <h2>Interested?</h2>
-          <p className="detail-cta-text">
-            Contact {listing.societyName} to express your interest in collaborating on this event!
-          </p>
-          <button className="cta-btn">
-            Express Interest
-          </button>
-        </div>
       </div>
 
       {galleryOpen && listing.imageUrls && listing.imageUrls.length > 0 && (
