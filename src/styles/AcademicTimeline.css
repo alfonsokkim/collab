@@ -1,9 +1,5 @@
 .academic-timeline {
-  margin-top: 24px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: var(--radius-lg);
-  padding: 16px 18px 14px;
+  background: #ffffff;
 }
 
 /* ── Header ──────────────────────────────────── */
@@ -21,7 +17,7 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: rgba(255,255,255,0.45);
+  color: #64748b;
 }
 
 .timeline-controls {
@@ -34,7 +30,7 @@
 .timeline-mode-toggle,
 .timeline-term-toggle {
   display: flex;
-  background: rgba(255,255,255,0.08);
+  background: #f1f5f9;
   border-radius: 6px;
   padding: 2px;
   gap: 2px;
@@ -45,7 +41,7 @@
   padding: 3px 10px;
   border: none;
   background: transparent;
-  color: rgba(255,255,255,0.45);
+  color: #94a3b8;
   font-size: 11px;
   font-weight: 600;
   font-family: var(--sans);
@@ -56,29 +52,30 @@
 
 .timeline-mode-toggle button.active,
 .timeline-term-toggle button.active {
-  background: rgba(255,255,255,0.18);
-  color: white;
+  background: #ffffff;
+  color: #1e293b;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .timeline-mode-toggle button:hover:not(.active),
 .timeline-term-toggle button:hover:not(.active) {
-  color: rgba(255,255,255,0.7);
+  color: #475569;
 }
 
-/* Active term gets a tinted colour matching the term */
+/* Active term tinted colours */
 .timeline-term-toggle button.active[data-term="T1"],
 .timeline-term-toggle button.active[data-term="S1"] {
-  background: rgba(99,179,237,0.25);
-  color: rgba(147,210,255,0.95);
+  background: rgba(99,179,237,0.15);
+  color: #2563eb;
 }
 .timeline-term-toggle button.active[data-term="T2"],
 .timeline-term-toggle button.active[data-term="S2"] {
-  background: rgba(72,187,120,0.25);
-  color: rgba(134,239,172,0.95);
+  background: rgba(72,187,120,0.15);
+  color: #16a34a;
 }
 .timeline-term-toggle button.active[data-term="T3"] {
-  background: rgba(237,137,54,0.25);
-  color: rgba(251,191,36,0.95);
+  background: rgba(237,137,54,0.15);
+  color: #d97706;
 }
 
 /* ── Scroll container ────────────────────────── */
@@ -86,9 +83,8 @@
   overflow-x: auto;
   overflow-y: visible;
   padding-bottom: 4px;
-  /* Custom scrollbar */
   scrollbar-width: thin;
-  scrollbar-color: rgba(255,255,255,0.15) transparent;
+  scrollbar-color: #cbd5e1 transparent;
 }
 
 .timeline-scroll::-webkit-scrollbar {
@@ -98,7 +94,7 @@
   background: transparent;
 }
 .timeline-scroll::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.15);
+  background: #cbd5e1;
   border-radius: 2px;
 }
 
@@ -171,50 +167,50 @@
   text-align: center;
 }
 
-/* Type colours */
+/* Type colours — light background variants */
 .week-cell.type-teaching {
   background: rgba(99,179,237,0.18);
-  color: rgba(147,210,255,0.75);
+  color: #1d6fa4;
 }
 .week-cell.type-teaching:hover {
-  background: rgba(99,179,237,0.28);
+  background: rgba(99,179,237,0.30);
 }
 .week-cell.type-flex {
-  background: rgba(255,255,255,0.07);
-  color: rgba(255,255,255,0.35);
-  border: 1px dashed rgba(255,255,255,0.15);
+  background: #f8fafc;
+  color: #94a3b8;
+  border: 1px dashed #cbd5e1;
 }
 .week-cell.type-stuvac {
-  background: rgba(251,191,36,0.18);
-  color: rgba(251,191,36,0.8);
+  background: rgba(251,191,36,0.2);
+  color: #b45309;
 }
 .week-cell.type-exam {
   background: rgba(252,129,74,0.2);
-  color: rgba(252,129,74,0.85);
+  color: #c2410c;
 }
 .week-cell.type-break {
-  background: rgba(255,255,255,0.04);
-  color: rgba(255,255,255,0.2);
+  background: #f1f5f9;
+  color: #94a3b8;
 }
 
 /* Current week */
 .week-cell.current {
-  outline: 2px solid rgba(255,255,255,0.6);
+  outline: 2px solid #334155;
   outline-offset: -2px;
-  color: white;
+  color: #0f172a;
 }
 .week-cell.current.type-teaching { background: rgba(99,179,237,0.35); }
 .week-cell.current.type-stuvac   { background: rgba(251,191,36,0.35); }
 .week-cell.current.type-exam     { background: rgba(252,129,74,0.35); }
-.week-cell.current.type-break    { background: rgba(255,255,255,0.1); }
+.week-cell.current.type-break    { background: #e2e8f0; }
 
 /* Has-event highlight */
 .week-cell.has-event {
-  outline: 2px solid rgba(232,160,69,0.7);
+  outline: 2px solid rgba(232,160,69,0.8);
   outline-offset: -2px;
 }
 .week-cell.has-event.current {
-  outline: 2px solid white;
+  outline: 2px solid #1e293b;
 }
 
 /* ── Month labels ────────────────────────────── */
@@ -228,7 +224,7 @@
   position: absolute;
   font-size: 9px;
   font-weight: 600;
-  color: rgba(255,255,255,0.3);
+  color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   white-space: nowrap;
@@ -241,7 +237,7 @@
   flex-wrap: wrap;
   margin-top: 12px;
   padding-top: 10px;
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 1px solid #e2e8f0;
 }
 
 .legend-item {
@@ -264,35 +260,35 @@
 }
 
 .legend-item.type-teaching {
-  color: rgba(147,210,255,0.7);
+  color: #1d6fa4;
 }
 .legend-item.type-teaching::before {
   background: rgba(99,179,237,0.4);
 }
 .legend-item.type-flex {
-  color: rgba(255,255,255,0.35);
+  color: #94a3b8;
 }
 .legend-item.type-flex::before {
-  background: rgba(255,255,255,0.12);
-  border: 1px dashed rgba(255,255,255,0.25);
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
 }
 .legend-item.type-stuvac {
-  color: rgba(251,191,36,0.75);
+  color: #b45309;
 }
 .legend-item.type-stuvac::before {
-  background: rgba(251,191,36,0.3);
+  background: rgba(251,191,36,0.35);
 }
 .legend-item.type-exam {
-  color: rgba(252,129,74,0.8);
+  color: #c2410c;
 }
 .legend-item.type-exam::before {
-  background: rgba(252,129,74,0.3);
+  background: rgba(252,129,74,0.35);
 }
 .legend-item.type-break {
-  color: rgba(255,255,255,0.25);
+  color: #94a3b8;
 }
 .legend-item.type-break::before {
-  background: rgba(255,255,255,0.08);
+  background: #e2e8f0;
 }
 .legend-item.legend-event {
   color: var(--primary);

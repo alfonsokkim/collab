@@ -363,7 +363,7 @@ export function ListingDetail() {
                 />
               </div>
               <div className="form-group">
-                <label>People Needed</label>
+                <label>Attendance</label>
                 <input
                   type="number"
                   value={editForm.peopleNeeded || 0}
@@ -518,7 +518,7 @@ export function ListingDetail() {
             <div className="info-item">
               <Users size={24} />
               <div>
-                <label>People Needed</label>
+                <label>Attendance</label>
                 <p>{listing.peopleNeeded} people</p>
               </div>
             </div>
@@ -587,7 +587,7 @@ export function ListingDetail() {
           <div className="info-item">
             <Users size={24} />
             <div>
-              <label>People Needed</label>
+              <label>Attendance</label>
               <p>{listing.peopleNeeded} people</p>
             </div>
           </div>

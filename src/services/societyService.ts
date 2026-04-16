@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { cacheGet, cacheSet, cacheDelete } from '../lib/cache';
 
 export const SOCIETY_TYPES = [
   'Faculty',
@@ -84,6 +85,9 @@ export async function uploadLogoImage(base64Image: string, userId: string): Prom
 
 // Get society profile by user ID
 export async function getSocietyProfile(userId: string): Promise<SocietyProfile | null> {
+  const cached = cacheGet<SocietyProfile>(`society:${userId}`);
+  if (cached) return cached;
+
   try {
     const { data, error } = await supabase
       .from('societies')
@@ -101,7 +105,7 @@ export async function getSocietyProfile(userId: string): Promise<SocietyProfile 
       return null;
     }
 
-    return {
+    const profile: SocietyProfile = {
       id: data.id,
       userId: data.user_id,
       name: data.name,
@@ -116,6 +120,8 @@ export async function getSocietyProfile(userId: string): Promise<SocietyProfile 
       logoImageUrl: data.logo_image_url,
       createdAt: data.created_at,
     };
+    cacheSet(`society:${userId}`, profile);
+    return profile;
   } catch (error) {
     console.error('Error in getSocietyProfile:', error);
     return null;
@@ -167,6 +173,7 @@ export async function saveSocietyProfile(userId: string, profile: SocietyProfile
 
       console.log('Update successful, returned data:', data);
 
+      cacheDelete(`society:${userId}`);
       return {
         id: data.id,
         userId: data.user_id,
@@ -212,6 +219,7 @@ export async function saveSocietyProfile(userId: string, profile: SocietyProfile
 
       console.log('Create successful, returned data:', data);
 
+      cacheDelete(`society:${userId}`);
       return {
         id: data.id,
         userId: data.user_id,

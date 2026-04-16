@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { cacheGet, cacheSet, cacheDelete, cacheDeletePrefix } from '../lib/cache';
 
 export interface ListingInput {
   title: string;
@@ -128,6 +129,9 @@ export async function createListing(listing: ListingInput, societyName: string):
       throw error;
     }
 
+    cacheDelete('listings:all');
+    cacheDeletePrefix('listings:user:');
+
     return {
       id: data.id,
       userId: data.user_id,
@@ -149,6 +153,9 @@ export async function createListing(listing: ListingInput, societyName: string):
 
 // Fetch all listings with society names
 export async function fetchListings(): Promise<Listing[]> {
+  const cached = cacheGet<Listing[]>('listings:all');
+  if (cached) return cached;
+
   try {
     // First fetch listings with all data
     const { data: listings, error: listingsError } = await supabase
@@ -183,7 +190,7 @@ export async function fetchListings(): Promise<Listing[]> {
     const societyTypeMap = new Map((societies || []).map((s: any) => [s.user_id, s.society_type]));
 
     // Combine listings with society data
-    return listings.map((item: any) => ({
+    const result = listings.map((item: any) => ({
       id: item.id,
       userId: item.user_id,
       title: item.title,
@@ -197,6 +204,8 @@ export async function fetchListings(): Promise<Listing[]> {
       societyType: societyTypeMap.get(item.user_id) || undefined,
       createdAt: item.created_at,
     }));
+    cacheSet('listings:all', result);
+    return result;
   } catch (error) {
     console.error('Error in fetchListings:', error);
     return [];
@@ -205,6 +214,9 @@ export async function fetchListings(): Promise<Listing[]> {
 
 // Fetch a single listing by ID with society name
 export async function fetchListingById(listingId: string): Promise<Listing | null> {
+  const cached = cacheGet<Listing>(`listing:${listingId}`);
+  if (cached) return cached;
+
   try {
     const { data: listing, error: listingError } = await supabase
       .from('listings')
@@ -247,7 +259,7 @@ export async function fetchListingById(listingId: string): Promise<Listing | nul
 
     console.log('Fetched listing imageUrls:', imageUrls);
 
-    return {
+    const result: Listing = {
       id: listing.id,
       userId: listing.user_id,
       title: listing.title,
@@ -261,6 +273,8 @@ export async function fetchListingById(listingId: string): Promise<Listing | nul
       societyType: society?.society_type || undefined,
       createdAt: listing.created_at,
     };
+    cacheSet(`listing:${listingId}`, result);
+    return result;
   } catch (error) {
     console.error('Error in fetchListingById:', error);
     return null;
@@ -329,6 +343,9 @@ export async function updateListing(listingId: string, updates: Partial<ListingI
       .eq('user_id', data.user_id)
       .single();
 
+    cacheDelete(`listing:${listingId}`, 'listings:all');
+    cacheDeletePrefix(`listings:user:`);
+
     return {
       id: data.id,
       userId: data.user_id,
@@ -350,6 +367,9 @@ export async function updateListing(listingId: string, updates: Partial<ListingI
 
 // Fetch listings by user ID
 export async function fetchListingsByUserId(userId: string): Promise<Listing[]> {
+  const cached = cacheGet<Listing[]>(`listings:user:${userId}`);
+  if (cached) return cached;
+
   try {
     const { data, error } = await supabase
       .from('listings')
@@ -368,7 +388,7 @@ export async function fetchListingsByUserId(userId: string): Promise<Listing[]> 
       .eq('user_id', userId)
       .single();
 
-    return (data || []).map((item: any) => ({
+    const result = (data || []).map((item: any) => ({
       id: item.id,
       userId: item.user_id,
       title: item.title,
@@ -381,6 +401,8 @@ export async function fetchListingsByUserId(userId: string): Promise<Listing[]> 
       societyName: society?.name || 'Unknown Society',
       createdAt: item.created_at,
     }));
+    cacheSet(`listings:user:${userId}`, result);
+    return result;
   } catch (error) {
     console.error('Error in fetchListingsByUserId:', error);
     return [];
@@ -400,6 +422,8 @@ export async function deleteListing(listingId: string): Promise<boolean> {
       throw error;
     }
 
+    cacheDelete(`listing:${listingId}`, 'listings:all');
+    cacheDeletePrefix('listings:user:');
     return true;
   } catch (error) {
     console.error('Error in deleteListing:', error);
