@@ -8,6 +8,9 @@ import { History } from './pages/History';
 import { Login } from './pages/Login';
 import { SignUp } from './pages/SignUp';
 import { CreateListing } from './pages/CreateListing';
+import { CollabRequests } from './pages/CollabRequests';
+import { PublicProfile } from './pages/PublicProfile';
+import { Chat } from './pages/Chat';
 
 function App() {
   return (
@@ -21,6 +24,9 @@ function App() {
           <Route path="/listings/:id" element={<ListingDetail />} />
           <Route path="/create-listing" element={<CreateListing />} />
           <Route path="/history" element={<History />} />
+          <Route path="/collab-requests" element={<CollabRequests />} />
+          <Route path="/society/:userId" element={<PublicProfile />} />
+          <Route path="/chat" element={<Chat />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
         </Routes>

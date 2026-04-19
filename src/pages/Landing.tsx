@@ -1,5 +1,6 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { BarChart3, Calendar, Users } from 'lucide-react';
+import { useAuth } from '../contexts/AuthContext';
 import ncsLogo from '../assets/NCS-logo.png';
 
 const features = [
@@ -24,6 +25,8 @@ const features = [
 ];
 
 export function Landing() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   return (
     <div className="w-full">
       <section className="relative flex min-h-[480px] items-center justify-center overflow-hidden bg-[var(--dark)] px-6 py-20 before:pointer-events-none before:absolute before:inset-0 before:bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] before:bg-[size:40px_40px] after:pointer-events-none after:absolute after:left-1/2 after:top-1/2 after:h-[500px] after:w-[700px] after:-translate-x-1/2 after:-translate-y-1/2 after:bg-[radial-gradient(ellipse,rgba(232,160,69,0.18)_0%,transparent_70%)] md:px-10 md:py-24">
@@ -45,12 +48,12 @@ export function Landing() {
             >
               Browse Events
             </Link>
-            <Link
-              to="/create-listing"
+            <button
+              onClick={() => navigate(user ? '/create-listing' : '/login')}
               className="inline-flex items-center rounded-[var(--radius)] border border-white/15 bg-white/8 px-7 py-[13px] text-[15px] font-semibold text-white/85 transition hover:border-white/25 hover:bg-white/13 hover:text-white"
             >
               Create a Listing
-            </Link>
+            </button>
           </div>
         </div>
       </section>

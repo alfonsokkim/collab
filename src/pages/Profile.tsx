@@ -18,6 +18,7 @@ import facebookIcon from '../assets/facebook-icon.svg';
 import discordIcon from '../assets/discord-icon.svg';
 import instagramIcon from '../assets/instagram-icon.svg';
 import linkedinIcon from '../assets/linkedin-icon.svg';
+import emailIcon from '../assets/email-icon.png';
 import { cn } from '../lib/utils';
 import { fetchListingsByUserId, type Listing } from '../services/listingService';
 import {
@@ -305,6 +306,7 @@ export function Profile() {
     .sort((a, b) => toEventDate(b.date).getTime() - toEventDate(a.date).getTime());
 
   const socialLinks = [
+    { key: 'email', icon: emailIcon, href: user?.email ? `mailto:${user.email}` : '', label: 'Email' },
     { key: 'instagram', icon: instagramIcon, href: normalizeInstagram(displaySociety.instagram), label: 'Instagram' },
     { key: 'discord', icon: discordIcon, href: displaySociety.discordUrl || '', label: 'Discord' },
     { key: 'facebook', icon: facebookIcon, href: normalizeFacebook(displaySociety.facebook), label: 'Facebook' },
@@ -326,7 +328,7 @@ export function Profile() {
       />
 
       <section className="mb-7">
-        <div className="w-full rounded-[28px] border border-[var(--border)] bg-white p-4 text-[var(--text)] shadow-[0_18px_50px_rgba(15,23,42,0.08)] md:p-1">
+        <div className="w-full rounded-[28px] border border-[var(--border)] bg-[var(--bg)] p-4 text-[var(--text)] shadow-[0_18px_50px_rgba(15,23,42,0.08)] md:p-1">
           <AcademicTimeline
             eventDates={eventDates}
             events={listings.map((listing) => ({
@@ -557,6 +559,19 @@ export function Profile() {
                 <h2 className="mt-2 text-2xl leading-[1.1] text-[var(--text)]">
                   Choose where people can find you
                 </h2>
+              </div>
+
+              <div className="mb-4 flex flex-col gap-2">
+                <label className="text-xs font-bold uppercase tracking-[0.06em] text-[var(--text-light)]">
+                  Email Address
+                </label>
+                <input
+                  type="text"
+                  value={user?.email || ''}
+                  readOnly
+                  disabled
+                  className="rounded-2xl border border-[var(--border)] bg-slate-50 px-4 py-3 text-[var(--text-light)] outline-none cursor-not-allowed select-none"
+                />
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">

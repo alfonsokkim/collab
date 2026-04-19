@@ -15,6 +15,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { GalleryModal } from '../components/GalleryModal';
 import { cn } from '../lib/utils';
 import { deleteListing, fetchListingById, updateListing } from '../services/listingService';
+import { sendCollabRequest } from '../services/collabRequestService';
 
 interface ListingData {
   id: string;
@@ -85,6 +86,10 @@ export function ListingDetail() {
   const [images, setImages] = useState<string[]>([]);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryStartIndex, setGalleryStartIndex] = useState(0);
+  const [interestOpen, setInterestOpen] = useState(false);
+  const [interestMessage, setInterestMessage] = useState('');
+  const [interestSending, setInterestSending] = useState(false);
+  const [interestSent, setInterestSent] = useState(false);
 
   const [editForm, setEditForm] = useState<Partial<ListingData>>({
     title: '',
@@ -645,7 +650,10 @@ export function ListingDetail() {
                 <p className="mb-4 text-[15px] leading-[1.65] text-[var(--text-mid)]">
                   Contact {listing.societyName} to express your interest in collaborating on this event!
                 </p>
-                <button className="inline-flex items-center rounded-[var(--radius)] bg-[var(--dark)] px-7 py-3 text-[15px] font-semibold text-white transition hover:-translate-y-px hover:bg-[var(--dark-surface)]">
+                <button
+                  onClick={() => user ? setInterestOpen(true) : navigate('/login')}
+                  className="inline-flex items-center rounded-[var(--radius)] bg-[var(--dark)] px-7 py-3 text-[15px] font-semibold text-white transition hover:-translate-y-px hover:bg-[var(--dark-surface)]"
+                >
                   Express Interest
                 </button>
               </div>
@@ -661,6 +669,108 @@ export function ListingDetail() {
           onClose={() => setGalleryOpen(false)}
         />
       )}
+
+      {interestOpen && (
+        <InterestModal
+          societyName={listing.societyName}
+          listingTitle={listing.title}
+          listingId={listing.id}
+          toUserId={listing.userId}
+          message={interestMessage}
+          onMessageChange={setInterestMessage}
+          sending={interestSending}
+          sent={interestSent}
+          onSend={async () => {
+            setInterestSending(true);
+            const ok = await sendCollabRequest(listing.id, listing.userId, interestMessage);
+            setInterestSending(false);
+            if (ok) { setInterestSent(true); setTimeout(() => { setInterestOpen(false); setInterestSent(false); setInterestMessage(''); }, 900); }
+          }}
+          onClose={() => { setInterestOpen(false); setInterestSent(false); setInterestMessage(''); }}
+        />
+      )}
+    </div>
+  );
+}
+
+function InterestModal({
+  societyName,
+  listingTitle,
+  message,
+  onMessageChange,
+  sending,
+  sent,
+  onSend,
+  onClose,
+}: {
+  societyName: string;
+  listingTitle: string;
+  listingId: string;
+  toUserId: string;
+  message: string;
+  onMessageChange: (v: string) => void;
+  sending: boolean;
+  sent: boolean;
+  onSend: () => void;
+  onClose: () => void;
+}) {
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    setTimeout(() => textareaRef.current?.focus(), 50);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onClose]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-[460px] rounded-2xl bg-[var(--bg)] shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="px-6 pt-6 pb-5">
+          <h2 className="text-[17px] font-bold text-[var(--text)] mb-1">Express Interest</h2>
+          <p className="text-sm text-[var(--text-light)] mb-5">
+            Send a collaboration request to <strong className="text-[var(--text)]">{societyName}</strong> for{' '}
+            <strong className="text-[var(--text)]">{listingTitle}</strong>
+          </p>
+          <label className="block mb-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-light)]">
+            Message <span className="font-normal normal-case tracking-normal">(optional)</span>
+          </label>
+          <textarea
+            ref={textareaRef}
+            value={message}
+            onChange={(e) => onMessageChange(e.target.value)}
+            placeholder="Introduce your society and why you'd like to collaborate..."
+            rows={4}
+            className="w-full resize-none rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg-light)] px-3.5 py-3 text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-light)] focus:border-[var(--primary)] transition"
+          />
+        </div>
+        <div className="flex items-center justify-end gap-2.5 border-t border-[var(--border-light)] px-6 py-4">
+          <button
+            onClick={onClose}
+            className="rounded-[var(--radius)] border border-[var(--border)] bg-transparent px-4 py-2 text-sm font-medium text-[var(--text-mid)] transition hover:bg-[var(--bg-light)] hover:text-[var(--text)]"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onSend}
+            disabled={sending || sent}
+            className={cn(
+              'rounded-[var(--radius)] px-5 py-2 text-sm font-semibold text-white transition',
+              sent
+                ? 'bg-green-600 cursor-default'
+                : 'bg-[var(--dark)] hover:-translate-y-px hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed',
+            )}
+          >
+            {sent ? 'Request Sent!' : sending ? 'Sending...' : 'Send Request'}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

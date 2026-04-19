@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AlertCircle, Calendar, FileText, Image as ImageIcon, Tag, Users, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -18,7 +18,7 @@ const availableTags = [
 const MAX_IMAGES = 8;
 
 const inputWrapperClass =
-  'flex items-center gap-2.5 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg-light)] px-3.5 py-[11px] transition focus-within:border-[var(--primary)] focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(232,160,69,0.12)]';
+  'flex items-center gap-2.5 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg-light)] px-3.5 py-[11px] transition focus-within:border-[var(--primary)] focus-within:bg-[var(--bg)] focus-within:shadow-[0_0_0_3px_rgba(232,160,69,0.12)]';
 
 const fieldLabelClass = 'text-[13px] font-semibold text-[var(--text)]';
 
@@ -34,6 +34,10 @@ export function CreateListing() {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user) navigate('/login', { replace: true });
+  }, [user, navigate]);
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
@@ -148,7 +152,7 @@ export function CreateListing() {
 
   return (
     <div className="flex min-h-[calc(100vh-60px)] items-start justify-center bg-[var(--bg-light)] px-6 py-12">
-      <div className="w-full max-w-[680px] rounded-[var(--radius-lg)] border border-[var(--border)] bg-white px-6 py-8 shadow-[var(--shadow-lg)] sm:px-12 sm:py-11">
+      <div className="w-full max-w-[680px] rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg)] px-6 py-8 shadow-[var(--shadow-lg)] sm:px-12 sm:py-11">
         <div className="mb-8">
           <h1 className="mb-1.5 font-[var(--heading)] text-[26px] text-[var(--text)]">
             Create Event Listing
@@ -159,7 +163,7 @@ export function CreateListing() {
         </div>
 
         {error && (
-          <div className="mb-5 flex items-center gap-2.5 rounded-[var(--radius)] border border-red-200 bg-red-50 px-3.5 py-[11px] text-[13px] text-red-600">
+          <div className="mb-5 flex items-center gap-2.5 rounded-[var(--radius)] border border-red-300/50 bg-red-500/10 px-3.5 py-[11px] text-[13px] text-red-500">
             <AlertCircle size={18} className="shrink-0" />
             <span>{error}</span>
           </div>
@@ -274,7 +278,7 @@ export function CreateListing() {
               disabled={loading}
               rows={5}
               maxLength={500}
-              className="min-h-[120px] resize-y rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg-light)] px-3.5 py-[11px] text-[15px] text-[var(--text)] transition outline-none placeholder:text-[var(--text-light)] focus:border-[var(--primary)] focus:bg-white focus:shadow-[0_0_0_3px_rgba(232,160,69,0.12)] disabled:text-[var(--text-light)]"
+              className="min-h-[120px] resize-y rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg-light)] px-3.5 py-[11px] text-[15px] text-[var(--text)] transition outline-none placeholder:text-[var(--text-light)] focus:border-[var(--primary)] focus:bg-[var(--bg)] focus:shadow-[0_0_0_3px_rgba(232,160,69,0.12)] disabled:text-[var(--text-light)]"
             />
             <span className="text-right text-xs text-[var(--text-light)]">{description.length}/500</span>
           </div>

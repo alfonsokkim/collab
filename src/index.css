@@ -1,6 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Outfit:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
+/* Tailwind dark mode via data-theme attribute */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
 :root {
   --primary: #e8a045;
   --primary-light: #f5c278;
@@ -107,6 +110,107 @@ main {
   background: rgba(255, 255, 255, 0.25);
   border-radius: 999px;
 }
+
+/* ── Modal pop animation ─────────────────────────────────────────────────── */
+@keyframes modal-pop {
+  from { opacity: 0; transform: scale(0.90); }
+  to   { opacity: 1; transform: scale(1);    }
+}
+
+/* ── Dark mode token overrides ───────────────────────────────────────────── */
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg:           #1b2030;
+  --bg-light:     #212638;
+  --bg-warm:      #1e2438;
+  --text:         #dde4f2;
+  --text-mid:     #8a96b4;
+  --text-light:   #5c6882;
+  --border:       #2c3554;
+  --border-light: #232a46;
+  --dark:         #252d45;
+  --dark-surface: #1e2438;
+  --primary-subtle: rgba(232,160,69,0.12);
+  --shadow-sm:    0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+  --shadow:       0 4px 12px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.2);
+  --shadow-lg:    0 10px 30px rgba(0,0,0,0.45), 0 4px 12px rgba(0,0,0,0.25);
+}
+
+/* Cards / surfaces that hardcode #fff need dark overrides */
+[data-theme="dark"] body,
+[data-theme="dark"] #root { background: var(--bg); }
+
+[data-theme="dark"] .profile-society-card,
+[data-theme="dark"] .profile-main-panel,
+[data-theme="dark"] .profile-event-card,
+[data-theme="dark"] .profile-timeline-frame,
+[data-theme="dark"] .profile-social-link,
+[data-theme="dark"] .profile-founded-tag,
+[data-theme="dark"] .rm-panel { background: var(--bg-light); color: var(--text); }
+
+[data-theme="dark"] .profile-hero {
+  background: linear-gradient(160deg, #0d1220 0%, #111826 55%, #0e1422 100%);
+  border-bottom-color: rgba(255,255,255,0.05);
+}
+
+[data-theme="dark"] .profile-avatar { background: linear-gradient(145deg, #252d45 0%, #1b2236 100%); }
+[data-theme="dark"] .profile-avatar-image { border-color: var(--border); }
+
+[data-theme="dark"] .profile-empty-state { border-color: var(--border); }
+
+[data-theme="dark"] .edit-btn,
+[data-theme="dark"] .save-btn { box-shadow: 0 10px 24px rgba(0,0,0,0.4); }
+
+[data-theme="dark"] .cancel-btn {
+  background: var(--bg-light);
+  border-color: var(--border);
+  color: var(--text-mid);
+}
+
+[data-theme="dark"] .profile-tab {
+  background: var(--bg-light);
+  border-color: var(--border);
+  color: var(--text-mid);
+}
+
+[data-theme="dark"] .profile-tab.active {
+  background: rgba(232,160,69,0.12);
+  border-color: rgba(232,160,69,0.3);
+  color: var(--primary);
+}
+
+[data-theme="dark"] .profile-tab-action {
+  background: var(--dark);
+  border-color: transparent;
+  color: var(--text);
+}
+
+[data-theme="dark"] .form-group input,
+[data-theme="dark"] .profile-name-input,
+[data-theme="dark"] .profile-description-input {
+  background: var(--bg);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+[data-theme="dark"] .profile-type-btn {
+  background: var(--bg-light);
+  border-color: var(--border);
+  color: var(--text-mid);
+}
+
+[data-theme="dark"] .profile-type-btn.active {
+  background: rgba(232,160,69,0.12);
+  color: var(--primary);
+  border-color: rgba(232,160,69,0.3);
+}
+
+[data-theme="dark"] .profile-event-tag { background: var(--bg); border-color: var(--border); }
+[data-theme="dark"] .profile-event-card-placeholder { background: linear-gradient(135deg,rgba(232,160,69,0.1) 0%,var(--bg-light) 100%); }
+
+[data-theme="dark"] .academic-timeline { background: var(--bg-light); }
+[data-theme="dark"] .timeline-legend { border-top-color: var(--border); }
 
 @keyframes gallerySlideRight {
   from {

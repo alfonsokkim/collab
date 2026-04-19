@@ -48,18 +48,18 @@ export function SignUp() {
   };
 
   const inputWrapperClass =
-    'flex items-center gap-2.5 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg-light)] px-3.5 py-[11px] transition focus-within:border-[var(--primary)] focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(232,160,69,0.12)]';
+    'flex items-center gap-2.5 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg-light)] px-3.5 py-[11px] transition focus-within:border-[var(--primary)] focus-within:bg-[var(--bg)] focus-within:shadow-[0_0_0_3px_rgba(232,160,69,0.12)]';
 
   return (
     <div className="flex min-h-[calc(100vh-60px)] items-center justify-center bg-[var(--bg-light)] px-6 py-10">
-      <div className="w-full max-w-[480px] rounded-[var(--radius-lg)] border border-[var(--border)] bg-white px-6 py-8 shadow-[var(--shadow-lg)] sm:px-10 sm:py-11">
+      <div className="w-full max-w-[480px] rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg)] px-6 py-8 shadow-[var(--shadow-lg)] sm:px-10 sm:py-11">
         <div className="mb-8 text-center">
           <h1 className="mb-2 font-[var(--heading)] text-[28px] text-[var(--text)]">Create Account</h1>
           <p className="text-sm text-[var(--text-light)]">Register your society on Collab</p>
         </div>
 
         {error && (
-          <div className="mb-5 flex items-center gap-2.5 rounded-[var(--radius)] border border-red-200 bg-red-50 px-3.5 py-[11px] text-[13px] text-red-600">
+          <div className="mb-5 flex items-center gap-2.5 rounded-[var(--radius)] border border-red-300/50 bg-red-500/10 px-3.5 py-[11px] text-[13px] text-red-500">
             <AlertCircle size={18} className="shrink-0" />
             <span>{error}</span>
           </div>
@@ -96,7 +96,7 @@ export function SignUp() {
                     'rounded-[var(--radius)] border px-2 py-[9px] text-center text-[13px] font-medium transition',
                     societyType === type
                       ? 'border-[var(--primary)] bg-[var(--primary-subtle)] font-semibold text-[var(--primary-dark)]'
-                      : 'border-[var(--border)] bg-[var(--bg-light)] text-[var(--text-mid)] hover:border-[var(--primary)] hover:bg-white hover:text-[var(--text)]',
+                      : 'border-[var(--border)] bg-[var(--bg-light)] text-[var(--text-mid)] hover:border-[var(--primary)] hover:bg-[var(--bg-light)] hover:text-[var(--text)]',
                   )}
                   onClick={() => setSocietyType(type)}
                   disabled={loading}
