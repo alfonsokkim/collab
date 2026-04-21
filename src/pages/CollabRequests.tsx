@@ -7,6 +7,7 @@ import { fetchListingsByUserId } from '../services/listingService';
 import { fetchIncomingRequests, updateRequestStatus } from '../services/collabRequestService';
 import type { CollabRequest } from '../services/collabRequestService';
 import type { Listing } from '../services/listingService';
+import { cacheGet } from '../lib/cache';
 import { getOrCreateListingRoom } from '../services/chatService';
 
 function Avatar({ name, logoUrl }: { name?: string; logoUrl?: string }) {
@@ -46,10 +47,25 @@ function timeAgo(dateStr: string): string {
 export function CollabRequests() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [requests, setRequests] = useState<CollabRequest[]>([]);
-  const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [listings, setListings] = useState<Listing[]>(() => {
+    if (!user) return [];
+    const cached = cacheGet<Listing[]>(`listings:user:${user.id}`);
+    return cached ? [...cached].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) : [];
+  });
+  const [requests, setRequests] = useState<CollabRequest[]>(() => {
+    if (!user) return [];
+    return cacheGet<CollabRequest[]>(`collab_requests:${user.id}`) ?? [];
+  });
+  const [selectedListingId, setSelectedListingId] = useState<string | null>(() => {
+    if (!user) return null;
+    const cached = cacheGet<Listing[]>(`listings:user:${user.id}`);
+    if (!cached?.length) return null;
+    return [...cached].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())[0].id;
+  });
+  const [loading, setLoading] = useState(() => {
+    if (!user) return false;
+    return !cacheGet(`listings:user:${user.id}`) || !cacheGet(`collab_requests:${user.id}`);
+  });
 
   useEffect(() => {
     if (!user) return;

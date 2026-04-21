@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { cacheGet, cacheSet, cacheDelete } from '../lib/cache';
 
 export interface CollabRequest {
   id: string;
@@ -44,6 +45,10 @@ export async function fetchIncomingRequests(): Promise<CollabRequest[]> {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return [];
 
+  const cacheKey = `collab_requests:${userData.user.id}`;
+  const cached = cacheGet<CollabRequest[]>(cacheKey);
+  if (cached) return cached;
+
   const { data: requests, error } = await supabase
     .from('collab_requests')
     .select('*')
@@ -63,7 +68,7 @@ export async function fetchIncomingRequests(): Promise<CollabRequest[]> {
   const societyMap = new Map((societies || []).map((s: any) => [s.user_id, s]));
   const listingMap = new Map((listings || []).map((l: any) => [l.id, l]));
 
-  return requests.map((r: any) => {
+  const result = requests.map((r: any) => {
     const listing = listingMap.get(r.to_listing_id);
     const society = societyMap.get(r.from_user_id);
     return {
@@ -87,16 +92,20 @@ export async function fetchIncomingRequests(): Promise<CollabRequest[]> {
         : undefined,
     };
   });
+  cacheSet(cacheKey, result);
+  return result;
 }
 
 export async function updateRequestStatus(
   requestId: string,
   status: 'accepted' | 'rejected',
 ): Promise<boolean> {
+  const { data: userData } = await supabase.auth.getUser();
   const { error } = await supabase
     .from('collab_requests')
     .update({ status })
     .eq('id', requestId);
-  if (error) console.error('Error updating request status:', error);
-  return !error;
+  if (error) { console.error('Error updating request status:', error); return false; }
+  if (userData.user) cacheDelete(`collab_requests:${userData.user.id}`);
+  return true;
 }

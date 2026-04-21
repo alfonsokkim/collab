@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowUpRight, Briefcase, Calendar, Globe, Search, Users, Waves, Wine, X } from 'lucide-react';
+import { ArrowUpRight, Briefcase, Calendar, Globe, RefreshCw, Search, Users, Waves, Wine, X } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { fetchListings } from '../services/listingService';
+import { fetchListings, type Listing as DbListing } from '../services/listingService';
+import { cacheDelete } from '../lib/cache';
 import { SOCIETY_TYPES } from '../services/societyService';
 import { sendCollabRequest } from '../services/collabRequestService';
 import { useAuth } from '../contexts/AuthContext';
+import { cacheGet } from '../lib/cache';
 
 interface Listing {
   id: string;
@@ -297,46 +299,60 @@ function ListingModal({
   );
 }
 
+function mapListing(listing: DbListing): Listing {
+  const icon = listing.tags.map((tag) => tagToIconMap[tag]).find(Boolean) || Wine;
+  return {
+    id: listing.id,
+    userId: listing.userId,
+    title: listing.title,
+    society: listing.societyName,
+    societyType: listing.societyType,
+    description: listing.description,
+    rawDate: listing.date,
+    date: new Date(listing.date).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+    }),
+    peopleNeeded: listing.peopleNeeded,
+    icon,
+    bannerImage: listing.bannerImageUrl,
+    tags: listing.tags,
+  };
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export function Listings() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [listings, setListings] = useState<Listing[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [listings, setListings] = useState<Listing[]>(() => {
+    const cached = cacheGet<DbListing[]>('listings:all');
+    return cached ? cached.map(mapListing) : [];
+  });
+  const [loading, setLoading] = useState(() => !cacheGet('listings:all'));
   const [selectedEventTypes, setSelectedEventTypes] = useState<string[]>([]);
   const [selectedSocietyTypes, setSelectedSocietyTypes] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [expressInterestListing, setExpressInterestListing] = useState<Listing | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    if (refreshing) return;
+    setRefreshing(true);
+    cacheDelete('listings:all');
+    const dbListings = await fetchListings();
+    setListings(dbListings.map(mapListing));
+    setRefreshing(false);
+  };
 
   useEffect(() => {
     const loadListings = async () => {
       try {
         setLoading(true);
         const dbListings = await fetchListings();
-        const mappedListings: Listing[] = dbListings.map((listing) => {
-          const icon = listing.tags.map((tag) => tagToIconMap[tag]).find(Boolean) || Wine;
-          return {
-            id: listing.id,
-            userId: listing.userId,
-            title: listing.title,
-            society: listing.societyName,
-            societyType: listing.societyType,
-            description: listing.description,
-            rawDate: listing.date,
-            date: new Date(listing.date).toLocaleDateString('en-US', {
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-            }),
-            peopleNeeded: listing.peopleNeeded,
-            icon,
-            bannerImage: listing.bannerImageUrl,
-            tags: listing.tags,
-          };
-        });
-        setListings(mappedListings);
+        setListings(dbListings.map(mapListing));
       } catch (error) {
         console.error('Error loading listings:', error);
       } finally {
@@ -368,11 +384,21 @@ export function Listings() {
 
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-10 md:px-7">
-      <div className="mb-7">
-        <h1 className="mb-2 text-[var(--text)]">Event Listings</h1>
-        <p className="text-base text-[var(--text-light)]">
-          Find societies to collaborate with and create amazing events together
-        </p>
+      <div className="mb-7 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="mb-2 text-[var(--text)]">Event Listings</h1>
+          <p className="text-base text-[var(--text-light)]">
+            Find societies to collaborate with and create amazing events together
+          </p>
+        </div>
+        <button
+          onClick={handleRefresh}
+          disabled={refreshing}
+          title="Refresh listings"
+          className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg)] text-[var(--text-light)] transition hover:border-[var(--primary)] hover:text-[var(--primary)] disabled:opacity-40"
+        >
+          <RefreshCw size={15} strokeWidth={2} className={refreshing ? 'animate-spin' : ''} />
+        </button>
       </div>
 
       <div className="grid items-start gap-7 md:grid-cols-[210px_minmax(0,1fr)]">
@@ -466,7 +492,10 @@ export function Listings() {
               Loading listings...
             </div>
           ) : (
-            <div className="flex flex-col gap-2.5">
+            <div
+              className="flex flex-col gap-2.5 transition-all duration-300"
+              style={{ opacity: refreshing ? 0.4 : 1, filter: refreshing ? 'blur(2px)' : 'none', pointerEvents: refreshing ? 'none' : 'auto' }}
+            >
               {filteredListings.map((listing) => {
                 const IconComponent = listing.icon;
                 return (

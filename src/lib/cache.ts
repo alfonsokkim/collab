@@ -1,4 +1,4 @@
-const TTL_MS = 60_000; // 1 minute
+const TTL_MS = 300_000; // 5 minutes
 
 interface Entry<T> {
   value: T;

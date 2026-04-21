@@ -190,7 +190,7 @@ export function Chat() {
     setSending(false);
     inputRef.current?.focus();
   };
-
+  
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
