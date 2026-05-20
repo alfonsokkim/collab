@@ -5,7 +5,7 @@ import { cn } from '../lib/utils';
 import { fetchListings, type Listing as DbListing } from '../services/listingService';
 import { cacheDelete } from '../lib/cache';
 import { SOCIETY_TYPES } from '../services/societyService';
-import { sendCollabRequest } from '../services/collabRequestService';
+import { sendCollabRequest, fetchOutgoingRequestedListingIds } from '../services/collabRequestService';
 import { useAuth } from '../contexts/AuthContext';
 import { cacheGet } from '../lib/cache';
 
@@ -48,7 +48,7 @@ function ExpressInterestModal({
   onClose,
 }: {
   listing: Listing;
-  onClose: () => void;
+  onClose: (sent?: boolean) => void;
 }) {
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
@@ -56,7 +56,7 @@ function ExpressInterestModal({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(false); };
     window.addEventListener('keydown', handler);
     setTimeout(() => textareaRef.current?.focus(), 50);
     return () => window.removeEventListener('keydown', handler);
@@ -66,13 +66,13 @@ function ExpressInterestModal({
     setSending(true);
     const ok = await sendCollabRequest(listing.id, listing.userId, message);
     setSending(false);
-    if (ok) { setSent(true); setTimeout(onClose, 900); }
+    if (ok) { setSent(true); setTimeout(() => onClose(true), 900); }
   };
 
   return (
     <div
       className="fixed inset-0 z-[2000] flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm"
-      onClick={onClose}
+      onClick={() => onClose(false)}
     >
       <div
         className="relative w-full max-w-[460px] rounded-2xl bg-[var(--bg)] shadow-2xl"
@@ -101,7 +101,7 @@ function ExpressInterestModal({
 
         <div className="flex items-center justify-end gap-2.5 border-t border-[var(--border-light)] px-6 py-4">
           <button
-            onClick={onClose}
+            onClick={() => onClose(false)}
             className="rounded-[var(--radius)] border border-[var(--border)] bg-transparent px-4 py-2 text-sm font-medium text-[var(--text-mid)] transition hover:bg-[var(--bg-light)] hover:text-[var(--text)]"
           >
             Cancel
@@ -130,11 +130,13 @@ function ListingModal({
   listing,
   onClose,
   isOwner,
+  alreadyRequested,
   onExpressInterest,
 }: {
   listing: Listing;
   onClose: () => void;
   isOwner: boolean;
+  alreadyRequested: boolean;
   onExpressInterest: () => void;
 }) {
   // Close on Escape key
@@ -285,10 +287,16 @@ function ListingModal({
                   Interested in collaborating with <strong className="text-[var(--text)]">{listing.society}</strong> on this event?
                 </p>
                 <button
-                  className="rounded-lg bg-[var(--dark)] px-5 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-px hover:shadow-md"
-                  onClick={onExpressInterest}
+                  disabled={alreadyRequested}
+                  className={cn(
+                    'rounded-lg px-5 py-2.5 text-sm font-semibold text-white transition',
+                    alreadyRequested
+                      ? 'cursor-default bg-[var(--text-light)] opacity-60'
+                      : 'bg-[var(--dark)] hover:-translate-y-px hover:shadow-md',
+                  )}
+                  onClick={alreadyRequested ? undefined : onExpressInterest}
                 >
-                  Express Interest
+                  {alreadyRequested ? 'Interest Already Expressed' : 'Express Interest'}
                 </button>
               </div>
             )}
@@ -335,8 +343,20 @@ export function Listings() {
   const [selectedSocietyTypes, setSelectedSocietyTypes] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
+  const [selectedListingRequested, setSelectedListingRequested] = useState(false);
   const [expressInterestListing, setExpressInterestListing] = useState<Listing | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [requestedListingIds, setRequestedListingIds] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!user) return;
+    fetchOutgoingRequestedListingIds().then(setRequestedListingIds);
+  }, [user]);
+
+  const handleSelectListing = (listing: Listing) => {
+    setSelectedListing(listing);
+    setSelectedListingRequested(requestedListingIds.has(listing.id));
+  };
 
   const handleRefresh = async () => {
     if (refreshing) return;
@@ -502,7 +522,7 @@ export function Listings() {
                   <div
                     key={listing.id}
                     className="flex min-h-[120px] cursor-pointer overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg)] transition hover:border-[rgba(232,160,69,0.45)] hover:shadow-[0_3px_16px_rgba(0,0,0,0.06)] max-sm:flex-col"
-                    onClick={() => setSelectedListing(listing)}
+                    onClick={() => handleSelectListing(listing)}
                   >
                     <div className="w-[180px] shrink-0 overflow-hidden bg-[var(--bg-light)] max-sm:h-[140px] max-sm:w-full">
                       {listing.bannerImage ? (
@@ -593,6 +613,7 @@ export function Listings() {
           listing={selectedListing}
           onClose={() => setSelectedListing(null)}
           isOwner={!!user && user.id === selectedListing.userId}
+          alreadyRequested={selectedListingRequested}
           onExpressInterest={() => user ? setExpressInterestListing(selectedListing) : navigate('/login')}
         />
       )}
@@ -600,7 +621,13 @@ export function Listings() {
       {expressInterestListing && (
         <ExpressInterestModal
           listing={expressInterestListing}
-          onClose={() => setExpressInterestListing(null)}
+          onClose={(sent?: boolean) => {
+            setExpressInterestListing(null);
+            if (sent && expressInterestListing) {
+              setRequestedListingIds((prev) => new Set([...prev, expressInterestListing.id]));
+              setSelectedListingRequested(true);
+            }
+          }}
         />
       )}
     </div>

@@ -46,19 +46,21 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [dark, toggleDark] = useDarkMode();
   const [bellOpen, setBellOpen] = useState(false);
-  const [bellSeen, setBellSeen] = useState(false);
   const [recentRequests, setRecentRequests] = useState<CollabRequest[]>([]);
+  const [seenIds, setSeenIds] = useState<Set<string>>(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('bell_seen_ids') || '[]')); }
+    catch { return new Set(); }
+  });
   const [unreadChats, setUnreadChats] = useState(0);
   const bellRef = useRef<HTMLDivElement>(null);
 
   const societyName = user?.user_metadata?.society_name || 'My Society';
-  const pendingCount = recentRequests.filter((r) => r.status === 'pending').length;
+  const pendingCount = recentRequests.filter((r) => !seenIds.has(r.id)).length;
 
   useEffect(() => {
     if (!user) return;
     fetchIncomingRequests().then((reqs) => {
       setRecentRequests(reqs.filter((r) => r.status === 'pending').slice(0, 5));
-      setBellSeen(false);
     });
     getTotalUnread().then(setUnreadChats);
   }, [user]);
@@ -116,12 +118,17 @@ export function Navbar() {
           {user && (
             <div className="relative ml-1" ref={bellRef}>
               <button
-                onClick={() => { setBellOpen((v) => !v); setBellSeen(true); }}
+                onClick={() => {
+                  setBellOpen((v) => !v);
+                  const ids = new Set(recentRequests.map((r) => r.id));
+                  setSeenIds(ids);
+                  localStorage.setItem('bell_seen_ids', JSON.stringify([...ids]));
+                }}
                 className="relative flex h-9 w-9 items-center justify-center rounded-md text-[var(--text-mid)] transition hover:text-[var(--text)]"
                 aria-label="Notifications"
               >
                 <Bell size={18} strokeWidth={2} />
-                {pendingCount > 0 && !bellSeen && (
+                {pendingCount > 0 && (
                   <span className="absolute right-1.5 top-1.5 flex h-[7px] w-[7px] items-center justify-center rounded-full bg-[var(--primary)]" />
                 )}
               </button>
@@ -143,7 +150,7 @@ export function Navbar() {
                       {recentRequests.map((req) => (
                         <Link
                           key={req.id}
-                          to={`/society/${req.fromUserId}`}
+                          to="/collab-requests"
                           onClick={() => setBellOpen(false)}
                           className="flex items-start gap-3 border-b border-[var(--border-light)] px-4 py-3 last:border-0 transition hover:bg-[var(--bg-light)]"
                         >
@@ -236,7 +243,7 @@ export function Navbar() {
 
         {/* Mobile hamburger */}
         <button
-          className="inline-flex items-center justify-center rounded-md p-2 text-white/60 transition hover:text-white md:hidden"
+          className="inline-flex items-center justify-center rounded-md p-2 text-[var(--text-mid)] transition hover:text-[var(--text)] md:hidden"
           onClick={() => setMobileMenuOpen((prev) => !prev)}
           aria-label="Toggle menu"
         >
@@ -246,8 +253,8 @@ export function Navbar() {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="bg-[var(--dark-surface)] px-4 pb-4 pt-3 md:hidden">
-          <div className="flex flex-col gap-1">
+        <div className="absolute left-0 right-0 top-[60px] z-[999] border-t border-[var(--border)] bg-[var(--bg)] shadow-[0_8px_24px_rgba(0,0,0,0.1)] md:hidden">
+          <div className="flex flex-col divide-y divide-[var(--border-light)]">
             {([
               ['/', 'Home', false],
               ['/profile', 'Profile', true],
@@ -259,7 +266,7 @@ export function Navbar() {
               <button
                 key={href}
                 onClick={() => { navigate(requiresAuth && !user ? '/login' : href); setMobileMenuOpen(false); }}
-                className="rounded-md px-3 py-3 text-left text-[15px] font-medium text-white/80 transition hover:bg-white/8 hover:text-white"
+                className="px-5 py-3.5 text-left text-[15px] font-medium text-[var(--text-mid)] transition hover:bg-[var(--bg-light)] hover:text-[var(--text)]"
               >
                 {label}
               </button>
@@ -269,16 +276,14 @@ export function Navbar() {
               <>
                 <button
                   onClick={() => { navigate('/profile'); setMobileMenuOpen(false); }}
-                  className="flex w-full items-center gap-3 rounded-md bg-transparent px-3 py-3 text-left text-[15px] font-medium text-white/80 transition hover:bg-white/8 hover:text-white"
+                  className="flex w-full items-center gap-3 bg-transparent px-5 py-3.5 text-left text-[15px] font-medium text-[var(--text-mid)] transition hover:bg-[var(--bg-light)] hover:text-[var(--text)]"
                 >
                   <UserIcon size={16} />
                   {societyName}
                 </button>
                 <button
                   onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
-                  className={cn(
-                    'mt-2 flex w-full items-center gap-3 border-t border-white/8 bg-transparent px-3 pt-3 text-left text-[15px] font-medium text-red-300 transition hover:bg-white/8',
-                  )}
+                  className="flex w-full items-center gap-3 bg-transparent px-5 py-3.5 text-left text-[15px] font-medium text-red-500 transition hover:bg-red-50 dark:hover:bg-red-500/10"
                 >
                   <LogOut size={16} />
                   Logout
@@ -287,7 +292,7 @@ export function Navbar() {
             ) : (
               <Link
                 to="/login"
-                className="rounded-md px-3 py-3 text-[15px] font-medium text-white/80 transition hover:bg-white/8 hover:text-white"
+                className="block px-5 py-3.5 text-[15px] font-medium text-[var(--text-mid)] transition hover:bg-[var(--bg-light)] hover:text-[var(--text)]"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Login
@@ -296,7 +301,7 @@ export function Navbar() {
 
             <button
               onClick={toggleDark}
-              className="mt-2 flex w-full items-center gap-3 rounded-md border-t border-white/8 bg-transparent px-3 pt-3 text-left text-[15px] font-medium text-white/60 transition hover:bg-white/8 hover:text-white"
+              className="flex w-full items-center gap-3 bg-transparent px-5 py-3.5 text-left text-[15px] font-medium text-[var(--text-mid)] transition hover:bg-[var(--bg-light)] hover:text-[var(--text)]"
             >
               {dark ? <Sun size={16} /> : <Moon size={16} />}
               {dark ? 'Light mode' : 'Dark mode'}

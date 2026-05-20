@@ -15,7 +15,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { GalleryModal } from '../components/GalleryModal';
 import { cn } from '../lib/utils';
 import { deleteListing, fetchListingById, updateListing } from '../services/listingService';
-import { sendCollabRequest } from '../services/collabRequestService';
+import { sendCollabRequest, fetchOutgoingRequestedListingIds } from '../services/collabRequestService';
 
 interface ListingData {
   id: string;
@@ -90,6 +90,7 @@ export function ListingDetail() {
   const [interestMessage, setInterestMessage] = useState('');
   const [interestSending, setInterestSending] = useState(false);
   const [interestSent, setInterestSent] = useState(false);
+  const [alreadyRequested, setAlreadyRequested] = useState(false);
 
   const [editForm, setEditForm] = useState<Partial<ListingData>>({
     title: '',
@@ -130,6 +131,10 @@ export function ListingDetail() {
         setListing(listingData);
         setEditForm(listingData);
         setImages(listingData.imageUrls || []);
+
+        if (user && user.id !== listingData.userId) {
+          fetchOutgoingRequestedListingIds().then((ids) => setAlreadyRequested(ids.has(listingData.id)));
+        }
       } catch (err: any) {
         console.error('Error loading listing:', err);
         setError('Failed to load listing');
@@ -651,10 +656,16 @@ export function ListingDetail() {
                   Contact {listing.societyName} to express your interest in collaborating on this event!
                 </p>
                 <button
-                  onClick={() => user ? setInterestOpen(true) : navigate('/login')}
-                  className="inline-flex items-center rounded-[var(--radius)] bg-[var(--dark)] px-7 py-3 text-[15px] font-semibold text-white transition hover:-translate-y-px hover:bg-[var(--dark-surface)]"
+                  onClick={() => !alreadyRequested && (user ? setInterestOpen(true) : navigate('/login'))}
+                  disabled={alreadyRequested}
+                  className={cn(
+                    'inline-flex items-center rounded-[var(--radius)] px-7 py-3 text-[15px] font-semibold text-white transition',
+                    alreadyRequested
+                      ? 'cursor-default bg-[var(--text-light)] opacity-60'
+                      : 'bg-[var(--dark)] hover:-translate-y-px hover:bg-[var(--dark-surface)]',
+                  )}
                 >
-                  Express Interest
+                  {alreadyRequested ? 'Interest Already Expressed' : 'Express Interest'}
                 </button>
               </div>
             )}
@@ -684,7 +695,7 @@ export function ListingDetail() {
             setInterestSending(true);
             const ok = await sendCollabRequest(listing.id, listing.userId, interestMessage);
             setInterestSending(false);
-            if (ok) { setInterestSent(true); setTimeout(() => { setInterestOpen(false); setInterestSent(false); setInterestMessage(''); }, 900); }
+            if (ok) { setInterestSent(true); setAlreadyRequested(true); setTimeout(() => { setInterestOpen(false); setInterestSent(false); setInterestMessage(''); }, 900); }
           }}
           onClose={() => { setInterestOpen(false); setInterestSent(false); setInterestMessage(''); }}
         />

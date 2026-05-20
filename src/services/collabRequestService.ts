@@ -96,6 +96,28 @@ export async function fetchIncomingRequests(): Promise<CollabRequest[]> {
   return result;
 }
 
+export async function fetchOutgoingRequestedListingIds(): Promise<Set<string>> {
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) return new Set();
+  const { data } = await supabase
+    .from('collab_requests')
+    .select('to_listing_id')
+    .eq('from_user_id', userData.user.id);
+  return new Set((data || []).map((r: any) => r.to_listing_id));
+}
+
+export async function hasOutgoingRequest(listingId: string): Promise<boolean> {
+  const { data: userData } = await supabase.auth.getUser();
+  if (!userData.user) return false;
+  const { data } = await supabase
+    .from('collab_requests')
+    .select('id')
+    .eq('from_user_id', userData.user.id)
+    .eq('to_listing_id', listingId)
+    .limit(1);
+  return !!(data && data.length > 0);
+}
+
 export async function updateRequestStatus(
   requestId: string,
   status: 'accepted' | 'rejected',
