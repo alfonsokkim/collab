@@ -1,131 +1,61 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { BarChart3, Calendar, Users } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import ncsLogo from '../assets/NCS-logo.png';
-
-const features = [
-  {
-    icon: Users,
-    title: 'Easy Collaboration',
-    description:
-      'Connect with other societies to create larger, more exciting events that reach more students.',
-  },
-  {
-    icon: Calendar,
-    title: 'Event Listings',
-    description:
-      "Post what you're looking for and find the perfect partner societies for your next event.",
-  },
-  {
-    icon: BarChart3,
-    title: 'Track History',
-    description:
-      'Keep records of past collaborations and build a reputation as a reliable partner.',
-  },
-];
 
 export function Landing() {
   const { user } = useAuth();
   const navigate = useNavigate();
+
   return (
-    <div className="w-full">
-      <section className="relative flex min-h-[480px] items-center justify-center overflow-hidden bg-[var(--dark)] px-6 py-20 before:pointer-events-none before:absolute before:inset-0 before:bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] before:bg-[size:40px_40px] after:pointer-events-none after:absolute after:left-1/2 after:top-1/2 after:h-[500px] after:w-[700px] after:-translate-x-1/2 after:-translate-y-1/2 after:bg-[radial-gradient(ellipse,rgba(232,160,69,0.18)_0%,transparent_70%)] md:px-10 md:py-24">
-        <div className="relative z-10 max-w-[760px] text-center">
-          <span
-            className="mb-7 inline-block rounded-full border border-[rgba(232,160,69,0.25)] bg-[rgba(232,160,69,0.12)] px-3.5 py-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--primary)]"
-            style={{ animation: 'landing-up 0.6s cubic-bezier(0.16,1,0.3,1) both' }}
-          >
-            UNSW Society Collaboration
-          </span>
-          <h1
-            className="mb-6 font-[var(--heading)] text-white text-[40px] font-extrabold leading-[1.05] tracking-[-1px] text-white sm:text-[52px] sm:tracking-[-1.5px] md:text-[62px] md:tracking-[-2px]"
-            style={{ animation: 'landing-up 0.65s 0.1s cubic-bezier(0.16,1,0.3,1) both' }}
-          >
-            Bringing Societies <em className="not-italic text-[var(--primary)]">Together</em>
-          </h1>
-          <p
-            className="mb-8 text-base leading-[1.65] text-white"
-            style={{ animation: 'landing-up 0.65s 0.2s cubic-bezier(0.16,1,0.3,1) both' }}
-          >
-            Connect with UNSW societies to co-host events, share resources, and build bigger
-            experiences for students.
-          </p>
-          <div
-            className="flex flex-wrap justify-center gap-3"
-            style={{ animation: 'landing-up 0.65s 0.3s cubic-bezier(0.16,1,0.3,1) both' }}
-          >
-            <Link
-              to="/listings"
-              className="inline-flex items-center rounded-[var(--radius)] bg-[var(--primary)] px-7 py-[13px] text-[15px] font-semibold text-white transition hover:-translate-y-px hover:bg-[var(--primary-dark)] hover:text-white hover:shadow-[0_6px_20px_rgba(232,160,69,0.35)]"
-            >
-              Browse Events
-            </Link>
-            <button
-              onClick={() => navigate(user ? '/create-listing' : '/login')}
-              className="inline-flex items-center rounded-[var(--radius)] border border-white/15 bg-white/8 px-7 py-[13px] text-[15px] font-semibold text-white/85 transition hover:border-white/25 hover:bg-white/13 hover:text-white"
-            >
-              Create a Listing
-            </button>
-          </div>
-        </div>
-      </section>
+    <div className="relative flex min-h-screen flex-col items-center justify-center bg-white px-6 dark:bg-[var(--bg)]">
 
+      {/* Heading */}
+      <h1
+        className="mb-7 text-center font-[var(--heading)] text-[60px] font-extrabold leading-[1.04] tracking-[-2px] text-black sm:text-[76px] sm:tracking-[-3px] md:text-[92px] md:tracking-[-4px] dark:text-white"
+        style={{ animation: 'landing-up 0.7s cubic-bezier(0.16,1,0.3,1) both' }}
+      >
+        Collabs made easier.
+      </h1>
+
+      {/* Subtitle */}
+      <p
+        className="mb-10 mx-auto max-w-[540px] text-center text-[19px] leading-[1.75] text-black/40 sm:text-[21px] dark:text-white/40"
+        style={{ animation: 'landing-up 0.7s 0.12s cubic-bezier(0.16,1,0.3,1) both' }}
+      >
+        Find societies to co-host events, share resources, post listings,
+        and build a reputation as a reliable partner across UNSW.
+      </p>
+
+      {/* CTAs */}
       <div
-        className="h-1 bg-[linear-gradient(90deg,transparent,var(--primary),transparent)] opacity-40"
-        style={{ animation: 'landing-fade 0.8s 0.4s both' }}
-      />
-
-      <section
-        className="mx-auto my-14 max-w-[1100px] px-4 md:my-20 md:px-7"
-        style={{ animation: 'landing-up 0.7s 0.45s cubic-bezier(0.16,1,0.3,1) both' }}
+        className="flex flex-wrap justify-center gap-3"
+        style={{ animation: 'landing-up 0.7s 0.22s cubic-bezier(0.16,1,0.3,1) both' }}
       >
-        <p className="mb-10 text-center text-xs font-semibold uppercase tracking-[0.1em] text-[var(--text-light)]">
-          Everything you need to collaborate
-        </p>
-        <div className="grid overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--border)] md:grid-cols-3 md:gap-px">
-          {features.map(({ icon: Icon, title, description }, i) => (
-            <div
-              key={title}
-              className="bg-[var(--bg)] px-8 py-10 transition hover:bg-[var(--bg-warm)]"
-              style={{ animation: `landing-up 0.65s ${0.5 + i * 0.1}s cubic-bezier(0.16,1,0.3,1) both` }}
-            >
-              <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-[var(--radius)] bg-[var(--primary-subtle)] text-[var(--primary-dark)]">
-                <Icon size={22} strokeWidth={1.75} />
-              </div>
-              <h3 className="mb-2 text-[17px] font-bold tracking-[-0.2px] text-[var(--text)]">{title}</h3>
-              <p className="text-sm leading-[1.65] text-[var(--text-light)]">{description}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section
-        className="relative overflow-hidden bg-[var(--dark)] px-6 py-[72px] text-center before:pointer-events-none before:absolute before:bottom-[-60px] before:right-[-60px] before:h-[360px] before:w-[360px] before:bg-[radial-gradient(ellipse,rgba(232,160,69,0.12)_0%,transparent_70%)] md:px-10"
-        style={{ animation: 'landing-up 0.7s 0.65s cubic-bezier(0.16,1,0.3,1) both' }}
-      >
-        <h2 className="mb-3.5 font-[var(--heading)] text-[32px] font-extrabold tracking-[-1px] text-white md:text-[38px]">
-          Ready to Collaborate?
-        </h2>
-        <p className="mb-9 text-[17px] text-white/55">
-          Join societies across UNSW and create unforgettable experiences
-        </p>
         <Link
           to="/listings"
-          className="inline-flex items-center rounded-[var(--radius)] bg-[var(--primary)] px-7 py-[13px] text-[15px] font-semibold text-white transition hover:bg-[var(--primary-dark)] hover:text-white"
+          className="inline-flex items-center rounded-[var(--radius)] border border-black/12 bg-white px-7 py-[13px] text-[15px] font-semibold text-black transition hover:-translate-y-px hover:bg-white/90 hover:shadow-[0_6px_20px_rgba(0,0,0,0.12)] dark:border-white/15 dark:bg-white dark:text-black dark:hover:bg-white/90"
         >
-          Explore Listings
+          Browse Events
         </Link>
-        <footer className="mt-10 border-t border-white/6 pt-5">
-          <p className="flex items-center justify-end gap-2 text-[13px] font-medium text-white/35">
-            cos we couldnt find collabs...
-            <img
-              src={ncsLogo}
-              alt="No Code Society"
-              className="h-7 w-auto opacity-50 [filter:brightness(0)_invert(1)]"
-            />
-          </p>
-        </footer>
-      </section>
+        <button
+          onClick={() => navigate(user ? '/create-listing' : '/login')}
+          className="inline-flex items-center rounded-[var(--radius)] border border-black/12 bg-black/5 px-7 py-[13px] text-[15px] font-semibold text-black/60 transition hover:border-black/22 hover:bg-black/8 hover:text-black/85 dark:border-white/12 dark:bg-white/5 dark:text-white/60 dark:hover:border-white/22 dark:hover:bg-white/8 dark:hover:text-white/85"
+        >
+          Create a Listing
+        </button>
+      </div>
+
+      {/* Gag tag — fixed to viewport, never affects page height */}
+      <div className="fixed bottom-5 right-6 z-50">
+        <p className="flex items-center gap-2 text-[12px] font-medium text-black/25 dark:text-white/25">
+          cos we couldnt find collabs...
+          <img
+            src={ncsLogo}
+            alt="No Code Society"
+            className="h-6 w-auto opacity-30 [filter:brightness(0)] dark:[filter:brightness(0)_invert(1)]"
+          />
+        </p>
+      </div>
     </div>
   );
 }

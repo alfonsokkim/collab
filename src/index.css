@@ -132,16 +132,16 @@ main {
 [data-theme="dark"] {
   color-scheme: dark;
 
-  --bg:           #1b2030;
-  --bg-light:     #212638;
-  --bg-warm:      #1e2438;
-  --text:         #dde4f2;
-  --text-mid:     #8a96b4;
-  --text-light:   #5c6882;
-  --border:       #2c3554;
-  --border-light: #232a46;
-  --dark:         #252d45;
-  --dark-surface: #1e2438;
+  --bg:           #161616;
+  --bg-light:     #1e1e1e;
+  --bg-warm:      #1a1a1a;
+  --text:         #e8e8e8;
+  --text-mid:     #888888;
+  --text-light:   #555555;
+  --border:       #2a2a2a;
+  --border-light: #222222;
+  --dark:         #111111;
+  --dark-surface: #1e1e1e;
   --primary-subtle: rgba(232,160,69,0.12);
   --shadow-sm:    0 1px 3px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
   --shadow:       0 4px 12px rgba(0,0,0,0.35), 0 1px 3px rgba(0,0,0,0.2);

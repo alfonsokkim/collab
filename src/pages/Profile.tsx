@@ -141,7 +141,7 @@ function EventCard({
               {listing.tags.slice(0, 2).map((tag) => (
                 <span
                   key={tag}
-                  className="rounded-full border border-[var(--border)] bg-slate-50 px-[9px] py-[5px] text-[10px] font-bold uppercase tracking-[0.04em] text-[var(--text-mid)]"
+                  className="rounded-full border border-[var(--border)] bg-[var(--bg-light)] px-[9px] py-[5px] text-[10px] font-bold uppercase tracking-[0.04em] text-[var(--text-mid)]"
                 >
                   {tag}
                 </span>
@@ -421,9 +421,9 @@ export function Profile() {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={link.label}
-                      className="inline-flex h-[42px] w-[42px] items-center justify-center rounded-full border border-[var(--border)] bg-white transition hover:-translate-y-0.5 hover:border-[rgba(232,160,69,0.4)] hover:shadow-[0_10px_24px_rgba(15,23,42,0.08)]"
+                      className="inline-flex h-[42px] w-[42px] items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg-light)] transition hover:-translate-y-0.5 hover:border-[rgba(232,160,69,0.4)] hover:shadow-[0_10px_24px_rgba(15,23,42,0.08)]"
                     >
-                      <img src={link.icon} alt={link.label} className="h-[18px] w-[18px]" />
+                      <img src={link.icon} alt={link.label} className={`h-[18px] w-[18px]${link.label === 'Email' ? ' dark:invert' : ''}`} />
                     </a>
                   ))}
                 </div>
@@ -431,7 +431,7 @@ export function Profile() {
 
               {!isEditing && (
                 <>
-                  <div className="mt-6 inline-flex items-center justify-center rounded-full border border-[var(--border)] bg-slate-50 px-3.5 py-2 text-xs font-bold uppercase tracking-[0.06em] text-[var(--text-light)]">
+                  <div className="mt-6 inline-flex items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg-light)] px-3.5 py-2 text-xs font-bold uppercase tracking-[0.06em] text-[var(--text-light)]">
                     Founded in {displaySociety.foundedYear || new Date().getFullYear()}
                   </div>
                   <StarRating value={averageRating} prefix="sidebar" />
@@ -463,7 +463,7 @@ export function Profile() {
                       setError('');
                       setIsEditing(false);
                     }}
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-white px-[18px] py-[13px] text-sm font-bold text-[var(--text-mid)] transition hover:border-[var(--text-light)] hover:text-[var(--text)]"
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--bg-light)] px-[18px] py-[13px] text-sm font-bold text-[var(--text-mid)] transition hover:border-[var(--text-light)] hover:text-[var(--text)]"
                   >
                     <X size={18} />
                     Cancel
@@ -540,7 +540,7 @@ export function Profile() {
                         'rounded-full border px-3.5 py-2.5 text-[13px] font-semibold transition',
                         editForm.societyType === type
                           ? 'border-[rgba(232,160,69,0.35)] bg-[#fdf1e2] text-[#9a5f14]'
-                          : 'border-[var(--border)] bg-white text-[var(--text-mid)] hover:border-[rgba(232,160,69,0.34)] hover:text-[var(--text)]',
+                          : 'border-[var(--border)] bg-[var(--bg-light)] text-[var(--text-mid)] hover:border-[rgba(232,160,69,0.34)] hover:text-[var(--text)]',
                       )}
                       onClick={() => setEditForm({ ...editForm, societyType: type })}
                     >
@@ -605,7 +605,7 @@ export function Profile() {
                     'inline-flex items-center justify-center gap-2 rounded-2xl border px-[18px] py-[13px] text-sm font-bold transition',
                     activeTab === 'upcoming'
                       ? 'border-[rgba(232,160,69,0.35)] bg-[#fdf1e2] text-[#9a5f14]'
-                      : 'border-[var(--border)] bg-white text-[var(--text-mid)] hover:border-[rgba(232,160,69,0.34)] hover:text-[var(--text)]',
+                      : 'border-[var(--border)] bg-[var(--bg-light)] text-[var(--text-mid)] hover:border-[rgba(232,160,69,0.34)] hover:text-[var(--text)]',
                   )}
                   onClick={() => setActiveTab('upcoming')}
                 >
@@ -617,7 +617,7 @@ export function Profile() {
                     'inline-flex items-center justify-center gap-2 rounded-2xl border px-[18px] py-[13px] text-sm font-bold transition',
                     activeTab === 'history'
                       ? 'border-[rgba(232,160,69,0.35)] bg-[#fdf1e2] text-[#9a5f14]'
-                      : 'border-[var(--border)] bg-white text-[var(--text-mid)] hover:border-[rgba(232,160,69,0.34)] hover:text-[var(--text)]',
+                      : 'border-[var(--border)] bg-[var(--bg-light)] text-[var(--text-mid)] hover:border-[rgba(232,160,69,0.34)] hover:text-[var(--text)]',
                   )}
                   onClick={() => setActiveTab('history')}
                 >

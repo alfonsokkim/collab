@@ -80,7 +80,7 @@ function ContactBubble({ href, icon, label }: { href: string; icon: string; labe
       aria-label={label}
       className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg-light)] transition hover:-translate-y-px hover:border-[rgba(232,160,69,0.4)] hover:shadow-sm"
     >
-      <img src={icon} alt={label} className="h-3.5 w-3.5" />
+      <img src={icon} alt={label} className={`h-3.5 w-3.5${label === 'Email' ? ' dark:invert' : ''}`} />
     </a>
   );
 }

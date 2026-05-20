@@ -215,7 +215,7 @@ export function Chat() {
     <div className="mx-auto flex h-[calc(100vh-60px)] max-w-[1100px] overflow-hidden">
       {/* Sidebar */}
       <aside className={cn('flex w-full flex-col border-r border-[var(--border)] bg-[var(--bg)] md:w-[300px] md:flex', showThread ? 'hidden md:flex' : 'flex')}>
-        <div className="border-b border-[var(--border)] px-4 py-4">
+        <div className="flex h-[69px] items-center border-b border-[var(--border)] px-4">
           <h2 className="text-[16px] font-bold text-[var(--text)]">Messages</h2>
         </div>
         <div className="flex-1 overflow-y-auto px-2 py-2">
@@ -246,7 +246,7 @@ export function Chat() {
         ) : (
           <>
             {/* Thread header */}
-            <div className="flex items-start gap-3 border-b border-[var(--border)] px-4 py-3">
+            <div className="flex h-[69px] items-center gap-3 border-b border-[var(--border)] px-4">
               <button
                 onClick={() => setShowThread(false)}
                 className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-[var(--text-light)] transition hover:bg-[var(--bg-light)] hover:text-[var(--text)] md:hidden"
