@@ -1,7 +1,9 @@
-import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
 import { Landing } from './pages/Landing';
+import { Onboarding } from './pages/Onboarding';
+import { useAuth } from './contexts/AuthContext';
 import { fetchListings, fetchListingsByUserId } from './services/listingService';
 import { fetchIncomingRequests } from './services/collabRequestService';
 import { getSocietyProfile } from './services/societyService';
@@ -16,6 +18,8 @@ import { CreateListing } from './pages/CreateListing';
 import { CollabRequests } from './pages/CollabRequests';
 import { PublicProfile } from './pages/PublicProfile';
 import { Chat } from './pages/Chat';
+import { Terms } from './pages/Terms';
+import { Privacy } from './pages/Privacy';
 import { ErrorBoundary } from './components/ErrorBoundary';
 
 const BASE_INTERVAL = 300_000;   // 5 min
@@ -40,6 +44,34 @@ async function prefetchAll(userId: string | undefined) {
     getSocietyProfile(userId);
     fetchListingsByUserId(userId);
   }
+}
+
+function OnboardingGate({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  useEffect(() => {
+    if (loading || !user) return;
+    const done = localStorage.getItem(`collab_onboarding:${user.id}`);
+    // Only show on pages that aren't login/signup
+    const path = window.location.pathname;
+    const isAuthPage = path === '/login' || path === '/signup';
+    if (!done && !isAuthPage) setShowOnboarding(true);
+  }, [user, loading]);
+
+  return (
+    <>
+      {children}
+      {showOnboarding && <Onboarding onComplete={() => setShowOnboarding(false)} />}
+    </>
+  );
+}
+
+function LandingOrRedirect() {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (user) return <Navigate to="/listings" replace />;
+  return <Landing />;
 }
 
 function App() {
@@ -91,11 +123,12 @@ function App() {
 
   return (
     <BrowserRouter>
+      <OnboardingGate>
       <Navbar />
       <main className="flex-1">
         <ErrorBoundary>
           <Routes>
-            <Route path="/" element={<Landing />} />
+            <Route path="/" element={<LandingOrRedirect />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/listings" element={<Listings />} />
             <Route path="/listings/:id" element={<ListingDetail />} />
@@ -106,9 +139,12 @@ function App() {
             <Route path="/chat" element={<Chat />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
+            <Route path="/terms" element={<Terms />} />
+            <Route path="/privacy" element={<Privacy />} />
           </Routes>
         </ErrorBoundary>
       </main>
+      </OnboardingGate>
     </BrowserRouter>
   );
 }

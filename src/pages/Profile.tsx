@@ -341,6 +341,7 @@ export function Profile() {
         <div className="w-full rounded-[28px] border border-[var(--border)] bg-[var(--bg)] p-4 text-[var(--text)] shadow-[0_18px_50px_rgba(15,23,42,0.08)] md:p-1">
           <AcademicTimeline
             eventDates={eventDates}
+            university={displaySociety.university}
             events={listings.map((listing) => ({
               id: listing.id,
               title: listing.title,
@@ -415,6 +416,20 @@ export function Profile() {
                   <p className="mt-3 text-sm font-bold uppercase tracking-[0.08em] text-[var(--primary-dark)]">
                     {displaySociety.societyType || 'Society type not set'}
                   </p>
+                  {displaySociety.university && (
+                    <div className="mt-2 inline-flex items-center gap-1.5">
+                      {displaySociety.university === 'UNSW' ? (
+                        <span className="inline-flex items-center gap-1 rounded-full border border-yellow-400/60 bg-yellow-400/10 px-2.5 py-0.5 text-[11px] font-bold tracking-wide text-yellow-600 dark:text-yellow-400">
+                          <span style={{ fontSize: '11px' }}>👑</span>
+                          {displaySociety.university}
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--bg-light)] px-2.5 py-0.5 text-[11px] font-bold tracking-wide text-[var(--text-light)]">
+                          {displaySociety.university}
+                        </span>
+                      )}
+                    </div>
+                  )}
                   <p className="mt-[18px] text-[15px] leading-[1.75] text-[var(--text-mid)]">
                     {displaySociety.description ||
                       'Add a short society description so people know what you are about.'}

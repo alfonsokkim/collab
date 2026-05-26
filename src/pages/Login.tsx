@@ -20,7 +20,14 @@ const [email, setEmail] = useState('');
       await signIn(email, password);
       navigate('/profile');
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in. Please check your credentials.');
+      const msg: string = err.message ?? '';
+      if (msg.toLowerCase().includes('invalid login credentials') || msg.toLowerCase().includes('invalid credentials')) {
+        setError('No account found with that email and password. Check your details or sign up.');
+      } else if (msg.toLowerCase().includes('email not confirmed')) {
+        setError('Please confirm your email address before signing in.');
+      } else {
+        setError(msg || 'Failed to sign in. Please try again.');
+      }
     } finally {
       setLoading(false);
     }

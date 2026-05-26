@@ -4,7 +4,7 @@ import { ArrowUpRight, Briefcase, Calendar, Globe, RefreshCw, Search, Users, Wav
 import { cn } from '../lib/utils';
 import { fetchListings, type Listing as DbListing } from '../services/listingService';
 import { cacheDelete } from '../lib/cache';
-import { SOCIETY_TYPES } from '../services/societyService';
+import { SOCIETY_TYPES, getSocietyProfile } from '../services/societyService';
 import { sendCollabRequest, fetchOutgoingRequestedListingIds } from '../services/collabRequestService';
 import { useAuth } from '../contexts/AuthContext';
 import { cacheGet } from '../lib/cache';
@@ -358,10 +358,12 @@ export function Listings() {
   const [requestedListingIds, setRequestedListingIds] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 12;
+  const [myUniversity, setMyUniversity] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) return;
     fetchOutgoingRequestedListingIds().then(setRequestedListingIds);
+    getSocietyProfile(user.id).then((p) => setMyUniversity(p?.university ?? null));
   }, [user]);
 
   const handleSelectListing = (listing: Listing) => {
@@ -405,7 +407,10 @@ export function Listings() {
   const filteredListings = upcomingListings.filter((listing) => {
     const matchesEventType = selectedEventTypes.length === 0 || selectedEventTypes.some((t) => listing.tags.includes(t));
     const matchesSocietyType = selectedSocietyTypes.length === 0 || (listing.societyType && selectedSocietyTypes.includes(listing.societyType));
-    return matchesEventType && matchesSocietyType && matchesSearch(listing);
+    // University visibility: null = open to all; otherwise only show if myUniversity is in the list
+    const visUnis = (listing as any).visibleToUniversities as string[] | null | undefined;
+    const matchesUniversity = !visUnis || visUnis.length === 0 || !myUniversity || visUnis.includes(myUniversity);
+    return matchesEventType && matchesSocietyType && matchesSearch(listing) && matchesUniversity;
   });
 
   // Which event types have results given current society + search filters?

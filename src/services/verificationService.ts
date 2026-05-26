@@ -105,14 +105,41 @@ export async function findRegistryMatch(societyName: string): Promise<{
 
   const fuse = new Fuse(searchTargets, {
     keys: ['name'],
-    threshold: 0.5,
+    threshold: 0.4,
+    minMatchCharLength: 3,
     includeScore: true,
+    ignoreLocation: true,
   });
 
-  const results = fuse.search(societyName);
-  if (!results.length) return undefined;
+  // Search with the original name AND common uni-prefix variants so
+  // "Cat Appreciation Society" still matches "UNSW Cat Appreciation Society"
+  const uniPrefixes = ['UNSW ', 'USyd ', 'UTS ', 'Macquarie ', 'Western Sydney '];
+  const queries = [societyName, ...uniPrefixes.map((p) => p + societyName)];
 
-  const best = results[0];
+  let best: (typeof results)[0] | undefined;
+  for (const q of queries) {
+    const results = fuse.search(q);
+    if (!results.length) continue;
+    if (!best || (results[0].score ?? 1) < (best.score ?? 1)) best = results[0];
+  }
+  if (!best) return undefined;
+  const matchQuality = 1 - (best.score ?? 1);
+  if (matchQuality < 0.35) return undefined;
+
+  // Secondary gate: word-overlap check.
+  // At least half of the meaningful query words must appear as substrings
+  // in the matched name. Prevents "cat soc" → "UNSW Data Science Society"
+  // where only "soc" (from "Society") coincidentally matches.
+  const queryWords = societyName.toLowerCase().split(/\s+/).filter((w) => w.length >= 3);
+  const targetLower = best.item.name.toLowerCase();
+
+  if (queryWords.length > 0) {
+    const matchedWords = queryWords.filter((w) => targetLower.includes(w));
+    const overlapRatio = matchedWords.length / queryWords.length;
+    // Require majority of query words to actually appear in the target name
+    if (overlapRatio < 0.5) return undefined;
+  }
+
   return { score: best.score ?? 1, entry: best.item.entry };
 }
 

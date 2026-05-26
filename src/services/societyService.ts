@@ -1,6 +1,16 @@
 import { supabase } from '../lib/supabase';
 import { cacheGet, cacheSet, cacheDelete } from '../lib/cache';
 
+export const UNIVERSITIES = [
+  { id: 'UNSW', label: 'UNSW Sydney' },
+  { id: 'USYD', label: 'University of Sydney' },
+  { id: 'UTS',  label: 'UTS' },
+  { id: 'MQ',   label: 'Macquarie University' },
+  { id: 'WSU',  label: 'Western Sydney University' },
+] as const;
+
+export type UniversityId = typeof UNIVERSITIES[number]['id'];
+
 export const SOCIETY_TYPES = [
   'Faculty',
   'Hobby',
@@ -29,6 +39,7 @@ export interface SocietyProfile {
   facebook?: string;
   linkedin?: string;
   logoImageUrl?: string;
+  university?: string;
   createdAt?: string;
 }
 
@@ -85,6 +96,7 @@ export async function getSocietyProfile(userId: string): Promise<SocietyProfile 
       facebook: data.facebook,
       linkedin: data.linkedin,
       logoImageUrl: data.logo_image_url,
+      university: data.university,
       createdAt: data.created_at,
     };
     cacheSet(`society:${userId}`, profile);
@@ -122,6 +134,7 @@ export async function saveSocietyProfile(userId: string, profile: SocietyProfile
           facebook: profile.facebook,
           linkedin: profile.linkedin,
           logo_image_url: logoImageUrl,
+          university: profile.university,
           updated_at: new Date().toISOString(),
         })
         .eq('user_id', userId)
@@ -149,6 +162,7 @@ export async function saveSocietyProfile(userId: string, profile: SocietyProfile
         facebook: data.facebook,
         linkedin: data.linkedin,
         logoImageUrl: data.logo_image_url,
+        university: data.university,
         createdAt: data.created_at,
       };
     } else {
@@ -169,6 +183,7 @@ export async function saveSocietyProfile(userId: string, profile: SocietyProfile
             facebook: profile.facebook,
             linkedin: profile.linkedin,
             logo_image_url: logoImageUrl,
+            university: profile.university,
           },
         ])
         .select()
@@ -195,6 +210,7 @@ export async function saveSocietyProfile(userId: string, profile: SocietyProfile
         facebook: data.facebook,
         linkedin: data.linkedin,
         logoImageUrl: data.logo_image_url,
+        university: data.university,
         createdAt: data.created_at,
       };
     }

@@ -6,6 +6,7 @@ import { cn } from '../lib/utils';
 import { createListing } from '../services/listingService';
 import { searchSocieties, sendHostInvite } from '../services/collabRequestService';
 import type { SocietySearchResult } from '../services/collabRequestService';
+import { UNIVERSITIES } from '../services/societyService';
 
 const availableTags = [
   'Social',
@@ -30,6 +31,7 @@ export function CreateListing() {
   const [date, setDate] = useState('');
   const [peopleNeeded, setPeopleNeeded] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [visibleToUniversities, setVisibleToUniversities] = useState<string[] | null>(null); // null = all
   const [images, setImages] = useState<{ blob: Blob; preview: string }[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -168,6 +170,11 @@ export function CreateListing() {
       return;
     }
 
+    if (visibleToUniversities !== null && visibleToUniversities.length === 0) {
+      setError('Please select at least one university or set visibility to "All universities".');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -180,6 +187,7 @@ export function CreateListing() {
           peopleNeeded: parseInt(peopleNeeded, 10),
           tags: selectedTags,
           images: images.length > 0 ? images.map((i) => i.blob) : undefined,
+          visibleToUniversities,
         },
         societyName,
       );
@@ -388,6 +396,58 @@ export function CreateListing() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* University visibility */}
+          <div className="flex flex-col gap-[7px]">
+            <label className={fieldLabelClass}>Visibility</label>
+            <p className="text-xs text-[var(--text-light)]">
+              Choose which universities can see this listing, or make it open to everyone.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setVisibleToUniversities(null)}
+                className={cn(
+                  'rounded-[var(--radius)] border px-3.5 py-2 text-[13px] font-medium transition',
+                  visibleToUniversities === null
+                    ? 'border-[rgba(232,160,69,0.35)] bg-[var(--primary-subtle)] font-semibold text-[var(--primary-dark)]'
+                    : 'border-[var(--border)] bg-[var(--bg-light)] text-[var(--text-mid)] hover:border-[var(--primary)] hover:bg-[var(--primary-subtle)] hover:text-[var(--primary-dark)]',
+                )}
+                disabled={loading}
+              >
+                🌐 All universities
+              </button>
+              {UNIVERSITIES.map(({ id, label }) => {
+                const selected = visibleToUniversities?.includes(id) ?? false;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => {
+                      setVisibleToUniversities((prev) => {
+                        const current = prev ?? [];
+                        return current.includes(id)
+                          ? current.filter((u) => u !== id) || null
+                          : [...current, id];
+                      });
+                    }}
+                    className={cn(
+                      'rounded-[var(--radius)] border px-3.5 py-2 text-[13px] font-medium transition',
+                      selected
+                        ? 'border-[rgba(232,160,69,0.35)] bg-[var(--primary-subtle)] font-semibold text-[var(--primary-dark)]'
+                        : 'border-[var(--border)] bg-[var(--bg-light)] text-[var(--text-mid)] hover:border-[var(--primary)] hover:bg-[var(--primary-subtle)] hover:text-[var(--primary-dark)]',
+                    )}
+                    disabled={loading}
+                  >
+                    {id}
+                  </button>
+                );
+              })}
+            </div>
+            {visibleToUniversities !== null && visibleToUniversities.length === 0 && (
+              <p className="text-[12px] text-amber-500">Select at least one university or switch back to "All universities".</p>
+            )}
           </div>
 
           {/* Invite specific societies */}

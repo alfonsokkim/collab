@@ -1,15 +1,38 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronDown, ChevronUp, Info, X } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { UNSW_WEEKS, USYD_WEEKS } from './academicCalendarData';
+import { UNSW_WEEKS, USYD_WEEKS, UTS_WEEKS, MQ_WEEKS, WSU_WEEKS } from './academicCalendarData';
 import type { WeekCell } from './academicCalendarData';
 
 type WeekType = 'teaching' | 'flex' | 'stuvac' | 'exam' | 'break';
-type CalendarMode = 'trimester' | 'semester';
+type SelectedUni = 'UNSW' | 'USYD' | 'UTS' | 'MQ' | 'WSU';
+
+const UNI_OPTIONS: { id: SelectedUni; label: string; shortLabel: string }[] = [
+  { id: 'UNSW', label: 'UNSW Sydney',        shortLabel: 'UNSW' },
+  { id: 'USYD', label: 'University of Sydney', shortLabel: 'USyd' },
+  { id: 'UTS',  label: 'UTS',                shortLabel: 'UTS'  },
+  { id: 'MQ',   label: 'Macquarie',          shortLabel: 'MQ'   },
+  { id: 'WSU',  label: 'Western Sydney',     shortLabel: 'WSU'  },
+];
+
+function getWeeksForUni(uni: SelectedUni): WeekCell[] {
+  switch (uni) {
+    case 'UNSW': return UNSW_WEEKS;
+    case 'USYD': return USYD_WEEKS;
+    case 'UTS':  return UTS_WEEKS;
+    case 'MQ':   return MQ_WEEKS;
+    case 'WSU':  return WSU_WEEKS;
+  }
+}
+
+function flexLabel(uni: SelectedUni): string {
+  return uni === 'UNSW' ? 'Flex Week' : 'Mid-Sem Break';
+}
 
 interface AcademicTimelineProps {
   eventDates: Date[];
   events?: { id: string; title: string; date: string }[];
+  university?: string;
 }
 
 const YEARS = [2025, 2026, 2027] as const;
@@ -39,7 +62,6 @@ const legendClasses: Record<WeekType, string> = {
   break: 'before:bg-slate-200 dark:before:bg-slate-700/60',
 };
 
-// Mobile abbreviations
 const mobileLabel: Record<WeekType, (label: string) => string> = {
   teaching: (l) => l,
   flex: () => 'FLX',
@@ -48,7 +70,6 @@ const mobileLabel: Record<WeekType, (label: string) => string> = {
   break: () => 'BRK',
 };
 
-// Mobile badge colors per type
 const mobileBadgeClasses: Record<WeekType, string> = {
   teaching: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
   flex: 'bg-slate-100 text-slate-500 dark:bg-[var(--bg-light)] dark:text-[var(--text-light)]',
@@ -92,14 +113,69 @@ function useIsMobile() {
   return isMobile;
 }
 
-// ── Desktop timeline (unchanged) ─────────────────────────────────────────────
+// ── Small reusable dropdown ───────────────────────────────────────────────────
+
+function PillDropdown<T extends string>({
+  value, onChange, options, className,
+}: {
+  value: T;
+  onChange: (v: T) => void;
+  options: { value: T; label: string }[];
+  className?: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const current = options.find((o) => o.value === value);
+
+  useEffect(() => {
+    if (!open) return;
+    const h = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
+  }, [open]);
+
+  return (
+    <div ref={ref} className={cn('relative', className)}>
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="flex items-center gap-1 rounded-md bg-[var(--bg-light)] px-2.5 py-[3px] text-[12px] font-semibold text-[var(--text)] shadow-sm transition hover:bg-[var(--border-light)]"
+      >
+        {current?.label ?? value}
+        <ChevronDown size={11} className={cn('text-[var(--text-light)] transition-transform', open && 'rotate-180')} />
+      </button>
+      {open && (
+        <div className="absolute left-0 top-[calc(100%+4px)] z-50 min-w-[120px] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg)] shadow-lg">
+          {options.map((o) => (
+            <button
+              key={o.value}
+              onClick={() => { onChange(o.value); setOpen(false); }}
+              className={cn(
+                'flex w-full items-center px-3 py-2 text-[12px] font-medium transition',
+                o.value === value
+                  ? 'bg-[var(--primary-subtle)] text-[var(--primary-dark)]'
+                  : 'text-[var(--text-mid)] hover:bg-[var(--bg-light)]',
+              )}
+            >
+              {o.label}
+              {o.value === value && <span className="ml-auto h-1.5 w-1.5 rounded-full bg-[var(--primary)]" />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Desktop timeline ──────────────────────────────────────────────────────────
 
 function DesktopTimeline({
-  mode, setMode, selectedYear, setSelectedYear, selectedTerm, setSelectedTerm,
+  selectedUni, setSelectedUni, selectedYear, setSelectedYear, selectedTerm, setSelectedTerm,
   termKeys, weeks, currentIdx, eventsByWeek, weekCount,
 }: {
-  mode: CalendarMode;
-  setMode: (m: CalendarMode) => void;
+  selectedUni: SelectedUni;
+  setSelectedUni: (u: SelectedUni) => void;
   selectedYear: Year;
   setSelectedYear: (y: Year) => void;
   selectedTerm: string;
@@ -121,23 +197,27 @@ function DesktopTimeline({
         : 'text-[var(--text-light)]',
     );
 
+  const uniOptions = UNI_OPTIONS.map((u) => ({ value: u.id, label: u.shortLabel }));
+  const yearOptions = YEARS.map((y) => ({ value: y.toString() as `${Year}`, label: y.toString() }));
+
   return (
     <>
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <span className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--text-light)]">Event Calendar</span>
         <div className="flex flex-wrap items-center gap-1.5">
-          <div className="flex gap-0.5 rounded-md bg-[var(--bg-light)] p-0.5">
-            {(['trimester', 'semester'] as const).map((m) => (
-              <button key={m} className={pillBtn(mode === m)} onClick={() => setMode(m)}>
-                {m === 'trimester' ? 'Trimester' : 'Semester'}
-              </button>
-            ))}
-          </div>
+          {/* University dropdown */}
+          <PillDropdown
+            value={selectedUni}
+            onChange={setSelectedUni}
+            options={uniOptions}
+          />
+
+          {/* Term pills */}
           <div className="flex gap-0.5 rounded-md bg-[var(--bg-light)] p-0.5">
             {termKeys.map((term) => {
               const accent =
-                term === 'T1' || term === 'S1' ? 'bg-blue-100 text-blue-600'
-                : term === 'T2' || term === 'S2' ? 'bg-green-100 text-green-600'
+                term === 'T1' || term === 'S1' || term === 'Autumn' ? 'bg-blue-100 text-blue-600'
+                : term === 'T2' || term === 'S2' || term === 'Spring' ? 'bg-green-100 text-green-600'
                 : 'bg-orange-100 text-orange-600';
               return (
                 <button key={term} className={pillBtn(selectedTerm === term, accent)} onClick={() => setSelectedTerm(term)}>
@@ -146,13 +226,13 @@ function DesktopTimeline({
               );
             })}
           </div>
-          <div className="flex gap-0.5 rounded-md bg-[var(--bg-light)] p-0.5">
-            {YEARS.map((y) => (
-              <button key={y} className={pillBtn(selectedYear === y)} onClick={() => setSelectedYear(y)}>
-                {y}
-              </button>
-            ))}
-          </div>
+
+          {/* Year dropdown */}
+          <PillDropdown
+            value={selectedYear.toString() as `${Year}`}
+            onChange={(v) => setSelectedYear(parseInt(v) as Year)}
+            options={yearOptions}
+          />
         </div>
       </div>
 
@@ -234,7 +314,7 @@ function DesktopTimeline({
       <div className="mt-3 flex flex-wrap gap-3 border-t border-[var(--border)] pt-2.5">
         {(['teaching', 'flex', 'stuvac', 'exam', 'break'] as WeekType[]).map((type) => (
           <span key={type} className={cn('flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.04em] text-[var(--text-light)]', 'before:inline-block before:h-2.5 before:w-2.5 before:rounded-[2px]', legendClasses[type])}>
-            {type === 'flex' ? (mode === 'trimester' ? 'Flex Week' : 'Mid-Sem Break') : type === 'teaching' ? 'Teaching' : type === 'stuvac' ? 'Stuvac' : type === 'exam' ? 'Exams' : 'Break'}
+            {type === 'flex' ? flexLabel(selectedUni) : type === 'teaching' ? 'Teaching' : type === 'stuvac' ? 'Stuvac' : type === 'exam' ? 'Exams' : 'Break'}
           </span>
         ))}
       </div>
@@ -245,11 +325,11 @@ function DesktopTimeline({
 // ── Mobile layout ─────────────────────────────────────────────────────────────
 
 function MobileTimeline({
-  mode, setMode, selectedYear, setSelectedYear, selectedTerm, setSelectedTerm,
+  selectedUni, setSelectedUni, selectedYear, setSelectedYear, selectedTerm, setSelectedTerm,
   termKeys, weeks, currentIdx, eventsByWeek, weekCount, events,
 }: {
-  mode: CalendarMode;
-  setMode: (m: CalendarMode) => void;
+  selectedUni: SelectedUni;
+  setSelectedUni: (u: SelectedUni) => void;
   selectedYear: Year;
   setSelectedYear: (y: Year) => void;
   selectedTerm: string;
@@ -266,7 +346,6 @@ function MobileTimeline({
   const [legendOpen, setLegendOpen] = useState(false);
   const selectorRef = useRef<HTMLDivElement>(null);
 
-  // Close selector on outside click
   useEffect(() => {
     if (!selectorOpen) return;
     const handler = (e: MouseEvent) => {
@@ -276,15 +355,12 @@ function MobileTimeline({
     return () => document.removeEventListener('mousedown', handler);
   }, [selectorOpen]);
 
-
-  // Upcoming events: all events from today forward, up to 8
   const today = new Date(); today.setHours(0, 0, 0, 0);
   const upcomingEvents = events
     .filter((e) => e.eventDate >= today)
     .sort((a, b) => a.eventDate.getTime() - b.eventDate.getTime())
     .slice(0, 8);
 
-  // Find the week context for each upcoming event
   const getWeekContext = (eventDate: Date) => {
     const idx = weeks.findIndex((w) => {
       const start = w.start.getTime();
@@ -300,23 +376,14 @@ function MobileTimeline({
     <div className="flex flex-col gap-4">
       {/* Controls */}
       <div className="flex items-center gap-2">
-        {/* Mode toggle */}
-        <div className="flex gap-0.5 rounded-lg bg-[var(--bg-light)] p-0.5">
-          {(['trimester', 'semester'] as const).map((m) => (
-            <button
-              key={m}
-              onClick={() => setMode(m)}
-              className={cn(
-                'rounded-md px-3 py-1.5 text-[12px] font-semibold transition',
-                mode === m ? 'bg-[var(--bg)] text-[var(--text)] shadow-sm' : 'text-[var(--text-light)]',
-              )}
-            >
-              {m === 'trimester' ? 'Tri' : 'Sem'}
-            </button>
-          ))}
-        </div>
+        {/* University dropdown */}
+        <PillDropdown
+          value={selectedUni}
+          onChange={setSelectedUni}
+          options={UNI_OPTIONS.map((u) => ({ value: u.id, label: u.shortLabel }))}
+        />
 
-        {/* Compact term + year selector */}
+        {/* Term + year compact selector */}
         <div className="relative flex-1" ref={selectorRef}>
           <button
             onClick={() => setSelectorOpen((v) => !v)}
@@ -331,7 +398,7 @@ function MobileTimeline({
               {YEARS.map((y) => (
                 <div key={y}>
                   <div className="px-3 pt-2 pb-1 text-[10px] font-bold uppercase tracking-widest text-[var(--text-light)]">{y}</div>
-                  {getTermsForYear(mode === 'trimester' ? UNSW_WEEKS : USYD_WEEKS, y).map((t) => {
+                  {getTermsForYear(getWeeksForUni(selectedUni), y).map((t) => {
                     const isActive = selectedTerm === t && selectedYear === y;
                     return (
                       <button
@@ -370,7 +437,7 @@ function MobileTimeline({
         <div className="flex flex-wrap gap-2 rounded-xl border border-[var(--border)] bg-[var(--bg-light)] p-3">
           {(['teaching', 'flex', 'stuvac', 'exam', 'break'] as WeekType[]).map((type) => (
             <span key={type} className={cn('flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold', mobileBadgeClasses[type])}>
-              {type === 'flex' ? (mode === 'trimester' ? 'Flex' : 'Mid-Sem') : type === 'teaching' ? 'Teaching' : type === 'stuvac' ? 'STUVAC' : type === 'exam' ? 'Exams' : 'Break'}
+              {type === 'flex' ? (selectedUni === 'UNSW' ? 'Flex' : 'Mid-Sem') : type === 'teaching' ? 'Teaching' : type === 'stuvac' ? 'STUVAC' : type === 'exam' ? 'Exams' : 'Break'}
             </span>
           ))}
         </div>
@@ -391,35 +458,26 @@ function MobileTimeline({
             {upcomingEvents.map((event) => {
               const ctx = getWeekContext(event.eventDate);
               const isSpecial = ctx && (ctx.week.type === 'stuvac' || ctx.week.type === 'exam');
-              const weekTag = ctx
-                ? mobileLabel[ctx.week.type](ctx.week.label)
-                : null;
+              const weekTag = ctx ? mobileLabel[ctx.week.type](ctx.week.label) : null;
 
               return (
                 <div key={event.id} className="flex items-center gap-3 px-4 py-3">
-                  {/* Week badge */}
                   <div className={cn(
                     'flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-lg text-center',
                     ctx ? mobileBadgeClasses[ctx.week.type] : 'bg-[var(--bg-light)] text-[var(--text-light)]',
                     isSpecial && 'ring-1 ring-orange-300 dark:ring-orange-500/40',
                   )}>
-                    <span className="text-[9px] font-bold uppercase leading-none tracking-wide opacity-70">
-                      {weekTag ?? '—'}
-                    </span>
+                    <span className="text-[9px] font-bold uppercase leading-none tracking-wide opacity-70">{weekTag ?? '—'}</span>
                     <span className="mt-0.5 text-[11px] font-bold leading-none">
                       {event.eventDate.toLocaleDateString('en-AU', { day: 'numeric' })}
                     </span>
                   </div>
-
-                  {/* Event info */}
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[13px] font-semibold text-[var(--text)]">{event.title}</p>
                     <p className="text-[12px] text-[var(--text-light)]">
                       {event.eventDate.toLocaleDateString('en-AU', { weekday: 'short', day: 'numeric', month: 'short' })}
                     </p>
                   </div>
-
-                  {/* Special period indicator */}
                   {isSpecial && (
                     <span className={cn(
                       'shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide',
@@ -444,18 +502,8 @@ function MobileTimeline({
         {timelineOpen ? 'Hide Academic Timeline' : 'View Full Academic Timeline'}
       </button>
 
-      {/* Expandable horizontal timeline */}
       {timelineOpen && (
-        <div
-          className="rounded-xl border border-[var(--border)] bg-[var(--bg-light)] p-3"
-          style={{ animation: 'appear 0.2s ease both' }}
-        >
-          {/* Event dot strip */}
-          <div className="relative mb-2 h-4">
-            {/* placeholder — dots rendered inline in cards */}
-          </div>
-
-          {/* Horizontally scrollable weeks */}
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--bg-light)] p-3" style={{ animation: 'appear 0.2s ease both' }}>
           <div
             className="flex gap-1.5 overflow-x-auto pb-2"
             style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
@@ -464,7 +512,6 @@ function MobileTimeline({
               const isCurrentWeek = i === currentIdx;
               const hasEvent = eventsByWeek.has(i);
               const abbr = mobileLabel[w.type](w.label);
-
               return (
                 <div
                   key={w.key}
@@ -480,9 +527,7 @@ function MobileTimeline({
                   style={{ scrollSnapAlign: 'start' }}
                   title={`${w.term} ${w.label} — ${w.start.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}`}
                 >
-                  <span className="text-center text-[11px] font-bold uppercase tracking-wide leading-none">
-                    {abbr}
-                  </span>
+                  <span className="text-center text-[11px] font-bold uppercase tracking-wide leading-none">{abbr}</span>
                   <span className="mt-1 text-center text-[9px] leading-none opacity-60">
                     {w.start.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
                   </span>
@@ -498,7 +543,6 @@ function MobileTimeline({
             })}
           </div>
 
-          {/* Month labels */}
           <div className="mt-1 flex gap-1.5 overflow-hidden">
             {weeks.map((w, i) => {
               const isFirst = i === 0 || w.start.getMonth() !== weeks[i - 1].start.getMonth();
@@ -518,20 +562,31 @@ function MobileTimeline({
 
 // ── Root component ────────────────────────────────────────────────────────────
 
-export function AcademicTimeline({ eventDates, events = [] }: AcademicTimelineProps) {
+function uniFromString(s: string | undefined): SelectedUni {
+  const map: Record<string, SelectedUni> = {
+    UNSW: 'UNSW', USYD: 'USYD', UTS: 'UTS', MQ: 'MQ', WSU: 'WSU',
+  };
+  return map[s?.toUpperCase() ?? ''] ?? 'UNSW';
+}
+
+export function AcademicTimeline({ eventDates, events = [], university }: AcademicTimelineProps) {
   const isMobile = useIsMobile();
-  const [mode, setMode] = useState<CalendarMode>('trimester');
-  const allWeeks = mode === 'trimester' ? UNSW_WEEKS : USYD_WEEKS;
 
-  const [selectedYear, setSelectedYear] = useState<Year>(() => getCurrentYearAndTerm(UNSW_WEEKS).year);
-  const [selectedTerm, setSelectedTerm] = useState<string>(() => getCurrentYearAndTerm(UNSW_WEEKS).term);
+  const defaultUni = uniFromString(university);
+  const [selectedUni, setSelectedUni] = useState<SelectedUni>(defaultUni);
 
+  const allWeeks = getWeeksForUni(selectedUni);
+
+  const [selectedYear, setSelectedYear] = useState<Year>(() => getCurrentYearAndTerm(getWeeksForUni(defaultUni)).year);
+  const [selectedTerm, setSelectedTerm] = useState<string>(() => getCurrentYearAndTerm(getWeeksForUni(defaultUni)).term);
+
+  // When uni changes, reset to current year/term for that uni
   useEffect(() => {
-    const weeks = mode === 'trimester' ? UNSW_WEEKS : USYD_WEEKS;
+    const weeks = getWeeksForUni(selectedUni);
     const { year, term } = getCurrentYearAndTerm(weeks);
     setSelectedYear(year);
     setSelectedTerm(term);
-  }, [mode]);
+  }, [selectedUni]);
 
   useEffect(() => {
     const terms = getTermsForYear(allWeeks, selectedYear);
@@ -588,7 +643,7 @@ export function AcademicTimeline({ eventDates, events = [] }: AcademicTimelinePr
   const weekCount = weeks.length;
 
   const sharedProps = {
-    mode, setMode,
+    selectedUni, setSelectedUni,
     selectedYear, setSelectedYear,
     selectedTerm, setSelectedTerm,
     termKeys, weeks, currentIdx, eventsByWeek, weekCount,

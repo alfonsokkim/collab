@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AlertCircle, CheckCircle2, Clock, Lock, Mail, ShieldCheck, Users, XCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { cn } from '../lib/utils';
-import { SOCIETY_TYPES } from '../services/societyService';
+import { SOCIETY_TYPES, UNIVERSITIES, saveSocietyProfile } from '../services/societyService';
 import {
   runVerificationPipeline,
   findRegistryMatch,
@@ -17,6 +17,7 @@ type Step = 'form' | 'verifying' | 'result' | 'blocked';
 export function SignUp() {
   const [societyName, setSocietyName] = useState('');
   const [societyType, setSocietyType] = useState('');
+  const [university, setUniversity] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -34,6 +35,11 @@ export function SignUp() {
 
     if (!societyType) {
       setError('Please select a society type');
+      return;
+    }
+
+    if (!university) {
+      setError('Please select your university');
       return;
     }
 
@@ -65,13 +71,25 @@ export function SignUp() {
 
       const userId = await signUp(email, password, societyName, societyType);
       if (userId) {
-        const result = await runVerificationPipeline({ userId, email, societyName, societyType });
+        const [result] = await Promise.all([
+          runVerificationPipeline({ userId, email, societyName, societyType }),
+          saveSocietyProfile(userId, { name: societyName, societyType, university }),
+        ]);
         setVerification(result);
       }
       setStep('result');
     } catch (err: any) {
       setStep('form');
-      setError(err.message || 'Failed to create account. Please try again.');
+      const msg: string = err.message ?? '';
+      if (msg.toLowerCase().includes('user already registered') || msg.toLowerCase().includes('already been registered')) {
+        setError('An account with this email already exists. Try signing in instead.');
+      } else if (msg.toLowerCase().includes('invalid email')) {
+        setError('Please enter a valid email address.');
+      } else if (msg.toLowerCase().includes('password')) {
+        setError('Password must be at least 6 characters.');
+      } else {
+        setError(msg || 'Failed to create account. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -234,9 +252,14 @@ export function SignUp() {
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-5">
           <div className="flex flex-col gap-[7px]">
-            <label htmlFor="societyName" className="text-[13px] font-semibold text-[var(--text)]">
-              Society Name
-            </label>
+            <div className="flex items-center justify-between">
+              <label htmlFor="societyName" className="text-[13px] font-semibold text-[var(--text)]">
+                Society Name
+              </label>
+              <span className={cn('text-[11px]', societyName.length > 50 ? 'text-red-500' : 'text-[var(--text-light)]')}>
+                {societyName.length}/50
+              </span>
+            </div>
             <div className={inputWrapperClass}>
               <Users size={20} className="shrink-0 text-[var(--text-light)]" />
               <input
@@ -247,8 +270,52 @@ export function SignUp() {
                 onChange={(e) => setSocietyName(e.target.value)}
                 disabled={loading}
                 required
+                maxLength={50}
                 className="w-full border-none bg-transparent text-[15px] text-[var(--text)] outline-none placeholder:text-[var(--text-light)] disabled:text-[var(--text-light)]"
               />
+            </div>
+            <p className="text-[12px] text-[var(--text-light)]">
+              Try to match your society's name on the{' '}
+              <a href="https://www.arc.unsw.edu.au/clubs" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[var(--text)]">
+                Arc rubric
+              </a>
+              {' '}as closely as possible — this helps us verify your society faster.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-[7px]">
+            <label className="text-[13px] font-semibold text-[var(--text)]">University</label>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+              {UNIVERSITIES.map(({ id, label }) => {
+                const isUNSW = id === 'UNSW';
+                const selected = university === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    className={cn(
+                      'relative rounded-[var(--radius)] border px-2 py-[9px] text-center text-[13px] font-medium transition',
+                      isUNSW && selected
+                        ? 'border-yellow-400 bg-yellow-400/10 font-semibold text-yellow-600 shadow-[0_0_0_2px_rgba(250,204,21,0.3)] dark:text-yellow-400'
+                        : isUNSW && !selected
+                          ? 'border-yellow-400/50 bg-yellow-400/5 text-[var(--text-mid)] hover:border-yellow-400 hover:text-yellow-600 dark:hover:text-yellow-400'
+                          : selected
+                            ? 'border-[var(--primary)] bg-[var(--primary-subtle)] font-semibold text-[var(--primary-dark)]'
+                            : 'border-[var(--border)] bg-[var(--bg-light)] text-[var(--text-mid)] hover:border-[var(--primary)] hover:text-[var(--text)]',
+                    )}
+                    onClick={() => setUniversity(id)}
+                    disabled={loading}
+                  >
+                    {isUNSW && (
+                      <span className="absolute -right-1.5 -top-2.5 inline-block" style={{ transform: 'rotate(15deg)', fontSize: '14px', lineHeight: 1 }}>
+                        👑
+                      </span>
+                    )}
+                    {id}
+                    <span className="block text-[10px] font-normal opacity-60">{label.replace(/^(University of |UNSW )/, '')}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
 

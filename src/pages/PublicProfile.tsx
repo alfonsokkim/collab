@@ -393,6 +393,20 @@ export function PublicProfile() {
                   {society.societyType}
                 </p>
               )}
+              {society.university && (
+                <div className="mt-2 inline-flex items-center gap-1.5">
+                  {society.university === 'UNSW' ? (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-yellow-400/60 bg-yellow-400/10 px-2.5 py-0.5 text-[11px] font-bold tracking-wide text-yellow-600 dark:text-yellow-400">
+                      <span style={{ fontSize: '11px' }}>👑</span>
+                      {society.university}
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center rounded-full border border-[var(--border)] bg-[var(--bg-light)] px-2.5 py-0.5 text-[11px] font-bold tracking-wide text-[var(--text-light)]">
+                      {society.university}
+                    </span>
+                  )}
+                </div>
+              )}
               <p className="mt-[18px] text-[15px] leading-[1.75] text-[var(--text-mid)]">
                 {society.description || 'No description provided.'}
               </p>

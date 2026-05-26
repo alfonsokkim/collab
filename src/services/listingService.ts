@@ -9,6 +9,7 @@ export interface ListingInput {
   tags: string[];
   bannerImage?: string;
   images?: (string | Blob)[];
+  visibleToUniversities?: string[] | null; // null = visible to all
 }
 
 export interface Listing extends ListingInput {
@@ -19,6 +20,7 @@ export interface Listing extends ListingInput {
   societyName: string;
   societyType?: string;
   createdAt: string;
+  visibleToUniversities?: string[] | null;
 }
 
 // Upload a single image blob to storage
@@ -81,6 +83,7 @@ export async function createListing(listing: ListingInput, societyName: string):
           tags: listing.tags,
           banner_image_url: bannerImageUrl,
           image_urls: imageUrls,
+          visible_to_universities: listing.visibleToUniversities ?? null,
         },
       ])
       .select()
@@ -106,6 +109,7 @@ export async function createListing(listing: ListingInput, societyName: string):
       imageUrls: data.image_urls || [],
       societyName,
       createdAt: data.created_at,
+      visibleToUniversities: data.visible_to_universities ?? null,
     };
   } catch (error) {
     console.error('Error in createListing:', error);
@@ -140,7 +144,7 @@ export async function fetchListings(): Promise<Listing[]> {
     // Fetch society data for those users
     const { data: societies, error: societiesError } = await supabase
       .from('societies')
-      .select('user_id, name, society_type')
+      .select('user_id, name, society_type, university')
       .in('user_id', userIds);
 
     if (societiesError) {
@@ -165,6 +169,7 @@ export async function fetchListings(): Promise<Listing[]> {
       societyName: societyNameMap.get(item.user_id) || 'Unknown Society',
       societyType: societyTypeMap.get(item.user_id) || undefined,
       createdAt: item.created_at,
+      visibleToUniversities: item.visible_to_universities ?? null,
     }));
     cacheSet('listings:all', result);
     return result;
