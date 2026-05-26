@@ -7,7 +7,7 @@ export function Landing() {
   const navigate = useNavigate();
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center bg-white px-6 dark:bg-[var(--bg)]">
+    <div className="relative flex h-[calc(100vh-60px)] flex-col items-center justify-center overflow-hidden bg-white px-6 dark:bg-[var(--bg)]">
 
       {/* Heading */}
       <h1

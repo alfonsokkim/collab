@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AlertCircle, Calendar, FileText, Image as ImageIcon, Tag, Users, X } from 'lucide-react';
+import { AlertCircle, Calendar, FileText, Image as ImageIcon, Loader2, Search, Tag, Users, X } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { cn } from '../lib/utils';
 import { createListing } from '../services/listingService';
+import { searchSocieties, sendHostInvite } from '../services/collabRequestService';
+import type { SocietySearchResult } from '../services/collabRequestService';
 
 const availableTags = [
   'Social',
@@ -31,13 +33,49 @@ export function CreateListing() {
   const [images, setImages] = useState<{ blob: Blob; preview: string }[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  // Society invite state
+  const [inviteSearch, setInviteSearch] = useState('');
+  const [searchResults, setSearchResults] = useState<SocietySearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [invitedSocieties, setInvitedSocieties] = useState<SocietySearchResult[]>([]);
+  const searchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
-    if (!user) navigate('/login', { replace: true });
-  }, [user, navigate]);
+    if (!authLoading && !user) navigate('/login', { replace: true });
+  }, [authLoading, user, navigate]);
+
+  const clearInviteSearch = () => {
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    setInviteSearch('');
+    setSearchResults([]);
+    setSearching(false);
+  };
+
+  const handleInviteSearchChange = (value: string) => {
+    setInviteSearch(value);
+    if (searchTimeout.current) clearTimeout(searchTimeout.current);
+    if (!value.trim()) { setSearchResults([]); setSearching(false); return; }
+    setSearching(true);
+    searchTimeout.current = setTimeout(async () => {
+      const results = await searchSocieties(value);
+      setSearchResults(results.filter(
+        (r) => r.userId !== user?.id && !invitedSocieties.find((s) => s.userId === r.userId)
+      ));
+      setSearching(false);
+    }, 300);
+  };
+
+  const addInvite = (society: SocietySearchResult) => {
+    setInvitedSocieties((prev) => [...prev, society]);
+    clearInviteSearch();
+  };
+
+  const removeInvite = (userId: string) => {
+    setInvitedSocieties((prev) => prev.filter((s) => s.userId !== userId));
+  };
 
   const toggleTag = (tag: string) => {
     setSelectedTags((prev) => (prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]));
@@ -134,7 +172,7 @@ export function CreateListing() {
 
     try {
       const societyName = user.user_metadata?.society_name || 'Unknown Society';
-      await createListing(
+      const listing = await createListing(
         {
           title,
           description,
@@ -145,6 +183,12 @@ export function CreateListing() {
         },
         societyName,
       );
+      // Send host invites to selected societies
+      if (listing && invitedSocieties.length > 0) {
+        await Promise.all(
+          invitedSocieties.map((s) => sendHostInvite(listing.id, s.userId))
+        );
+      }
       navigate('/listings');
     } catch (err: any) {
       setError(err.message || 'Failed to create listing');
@@ -344,6 +388,91 @@ export function CreateListing() {
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Invite specific societies */}
+          <div className="flex flex-col gap-[7px]">
+            <label className={fieldLabelClass}>
+              Invite Specific Societies <span className="font-normal text-[var(--text-light)]">(Optional)</span>
+            </label>
+            <p className="text-xs text-[var(--text-light)]">
+              Directly invite societies to collaborate on this listing. They'll receive a request they can accept or decline.
+            </p>
+
+            {/* Search input */}
+            <div className="relative">
+              <div className={cn(inputWrapperClass, 'relative')}>
+                {searching
+                  ? <Loader2 size={18} className="shrink-0 animate-spin text-[var(--text-light)]" />
+                  : <Search size={18} className="shrink-0 text-[var(--text-light)]" />
+                }
+                <input
+                  type="text"
+                  placeholder="Search societies by name…"
+                  value={inviteSearch}
+                  onChange={(e) => handleInviteSearchChange(e.target.value)}
+                  disabled={loading}
+                  className="w-full border-none bg-transparent text-[15px] text-[var(--text)] outline-none placeholder:text-[var(--text-light)] disabled:text-[var(--text-light)]"
+                />
+                {inviteSearch && (
+                  <button type="button" onClick={clearInviteSearch} className="text-[var(--text-light)] hover:text-[var(--text)]">
+                    <X size={15} />
+                  </button>
+                )}
+              </div>
+
+              {/* Dropdown results */}
+              {searchResults.length > 0 && (
+                <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg)] shadow-[var(--shadow-lg)]">
+                  {searchResults.map((s) => (
+                    <button
+                      key={s.userId}
+                      type="button"
+                      onClick={() => addInvite(s)}
+                      className="flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition hover:bg-[var(--bg-light)]"
+                    >
+                      {s.logoImageUrl
+                        ? <img src={s.logoImageUrl} alt={s.name} className="h-7 w-7 shrink-0 rounded-full object-cover border border-[var(--border)]" />
+                        : <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[var(--primary-subtle)] text-[11px] font-bold text-[var(--primary-dark)]">
+                            {s.name.slice(0, 2).toUpperCase()}
+                          </div>
+                      }
+                      <div className="min-w-0">
+                        <p className="truncate font-medium text-[var(--text)]">{s.name}</p>
+                        {s.societyType && <p className="text-[11px] text-[var(--text-light)]">{s.societyType}</p>}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Selected societies chips */}
+            {invitedSocieties.length > 0 && (
+              <div className="flex flex-wrap gap-2 pt-1">
+                {invitedSocieties.map((s) => (
+                  <div
+                    key={s.userId}
+                    className="flex items-center gap-1.5 rounded-full border border-[rgba(232,160,69,0.35)] bg-[var(--primary-subtle)] pl-1 pr-2.5 py-1"
+                  >
+                    {s.logoImageUrl
+                      ? <img src={s.logoImageUrl} alt={s.name} className="h-5 w-5 rounded-full object-cover" />
+                      : <div className="flex h-5 w-5 items-center justify-center rounded-full bg-[var(--primary)] text-[9px] font-bold text-white">
+                          {s.name.slice(0, 2).toUpperCase()}
+                        </div>
+                    }
+                    <span className="text-[12px] font-semibold text-[var(--primary-dark)]">{s.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeInvite(s.userId)}
+                      className="ml-0.5 text-[var(--primary-dark)] opacity-60 hover:opacity-100"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           <button

@@ -356,6 +356,8 @@ export function Listings() {
   const [expressInterestListing, setExpressInterestListing] = useState<Listing | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [requestedListingIds, setRequestedListingIds] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 12;
 
   useEffect(() => {
     if (!user) return;
@@ -422,6 +424,12 @@ export function Listings() {
   );
 
   const hasFilters = selectedEventTypes.length > 0 || selectedSocietyTypes.length > 0 || searchQuery;
+
+  const totalPages = Math.ceil(filteredListings.length / PAGE_SIZE);
+  const paginatedListings = filteredListings.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+
+  // Reset to page 1 when filters/search change
+  useEffect(() => { setCurrentPage(1); }, [selectedEventTypes, selectedSocietyTypes, searchQuery]);
 
   return (
     <div className="mx-auto max-w-[1200px] px-4 py-10 md:px-7">
@@ -539,7 +547,7 @@ export function Listings() {
           </div>
 
           <div className="mb-1 text-xs font-medium text-[var(--text-light)]">
-            Showing {filteredListings.length} listing{filteredListings.length !== 1 ? 's' : ''}
+            Showing {Math.min((currentPage - 1) * PAGE_SIZE + 1, filteredListings.length)}–{Math.min(currentPage * PAGE_SIZE, filteredListings.length)} of {filteredListings.length} listing{filteredListings.length !== 1 ? 's' : ''}
           </div>
 
           {loading ? (
@@ -551,7 +559,7 @@ export function Listings() {
               className="flex flex-col gap-2.5 transition-all duration-300"
               style={{ opacity: refreshing ? 0.4 : 1, filter: refreshing ? 'blur(2px)' : 'none', pointerEvents: refreshing ? 'none' : 'auto' }}
             >
-              {filteredListings.map((listing) => {
+              {paginatedListings.map((listing) => {
                 const IconComponent = listing.icon;
                 return (
                   <div
@@ -638,6 +646,51 @@ export function Listings() {
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="mt-6 flex items-center justify-center gap-1.5">
+              <button
+                onClick={() => { setCurrentPage((p) => Math.max(1, p - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                disabled={currentPage === 1}
+                className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--bg)] text-[var(--text-mid)] transition hover:border-[var(--primary)] hover:text-[var(--primary)] disabled:pointer-events-none disabled:opacity-30"
+              >
+                ‹
+              </button>
+
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                const isActive = page === currentPage;
+                const isNearCurrent = Math.abs(page - currentPage) <= 1 || page === 1 || page === totalPages;
+                if (!isNearCurrent) {
+                  // show ellipsis once on each side
+                  if (page === 2 && currentPage > 3) return <span key={page} className="px-1 text-xs text-[var(--text-light)]">…</span>;
+                  if (page === totalPages - 1 && currentPage < totalPages - 2) return <span key={page} className="px-1 text-xs text-[var(--text-light)]">…</span>;
+                  return null;
+                }
+                return (
+                  <button
+                    key={page}
+                    onClick={() => { setCurrentPage(page); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                    className={`flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] border text-[13px] font-medium transition ${
+                      isActive
+                        ? 'border-[var(--primary)] bg-[var(--primary)] text-white'
+                        : 'border-[var(--border)] bg-[var(--bg)] text-[var(--text-mid)] hover:border-[var(--primary)] hover:text-[var(--primary)]'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                );
+              })}
+
+              <button
+                onClick={() => { setCurrentPage((p) => Math.min(totalPages, p + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                disabled={currentPage === totalPages}
+                className="flex h-8 w-8 items-center justify-center rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--bg)] text-[var(--text-mid)] transition hover:border-[var(--primary)] hover:text-[var(--primary)] disabled:pointer-events-none disabled:opacity-30"
+              >
+                ›
+              </button>
             </div>
           )}
         </main>
