@@ -9,11 +9,11 @@ Current estimate: ~70% production ready. Core loop (auth, profiles, listings, co
 - [x] **Supabase RLS (Row Level Security)** — verified, users cannot access or mutate other societies' data
 - [x] **Auth guards on protected routes** — confirmed, unauthenticated users are redirected to `/login`
 
-- [ ] **Fix base64 image uploads**
+- [x] **Fix base64 image uploads**
   - Currently sending raw base64 strings which hits Supabase payload limits at scale
   - Switch to multipart `File` upload directly to Supabase Storage
 
-- [ ] **Add React error boundaries**
+- [x] **Add React error boundaries**
   - One unhandled JS error currently crashes the entire app to a blank screen
   - Wrap routes in an error boundary with a friendly fallback UI
 
@@ -25,7 +25,7 @@ Current estimate: ~70% production ready. Core loop (auth, profiles, listings, co
 
 ## Important — address soon after launch
 
-- [ ] **Live chat (1-on-1 and group)**
+- [x] **Live chat (1-on-1 and group)**
   - Big feature gap for a "collaboration" platform
   - Supabase Realtime supports this natively — see earlier discussion for schema
 

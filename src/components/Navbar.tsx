@@ -65,9 +65,20 @@ export function Navbar() {
     getTotalUnread().then(setUnreadChats);
   }, [user]);
 
+  // Re-fetch unread count on every route change so badge stays in sync with DB
   useEffect(() => {
-    if (location.pathname === '/chat') setUnreadChats(0);
-  }, [location.pathname]);
+    if (!user) return;
+    getTotalUnread().then(setUnreadChats);
+  }, [location.pathname, user]);
+
+  // While on /chat, poll every 2s so badge clears as soon as messages are read
+  useEffect(() => {
+    if (!user || location.pathname !== '/chat') return;
+    const interval = setInterval(() => {
+      getTotalUnread().then(setUnreadChats);
+    }, 2000);
+    return () => clearInterval(interval);
+  }, [location.pathname, user]);
 
   useEffect(() => {
     if (!bellOpen) return;

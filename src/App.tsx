@@ -16,6 +16,7 @@ import { CreateListing } from './pages/CreateListing';
 import { CollabRequests } from './pages/CollabRequests';
 import { PublicProfile } from './pages/PublicProfile';
 import { Chat } from './pages/Chat';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 const BASE_INTERVAL = 300_000;   // 5 min
 const MAX_INTERVAL  = 3_600_000; // 1 hour cap
@@ -92,19 +93,21 @@ function App() {
     <BrowserRouter>
       <Navbar />
       <main className="flex-1">
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/listings" element={<Listings />} />
-          <Route path="/listings/:id" element={<ListingDetail />} />
-          <Route path="/create-listing" element={<CreateListing />} />
-          <Route path="/history" element={<History />} />
-          <Route path="/collab-requests" element={<CollabRequests />} />
-          <Route path="/society/:userId" element={<PublicProfile />} />
-          <Route path="/chat" element={<Chat />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<SignUp />} />
-        </Routes>
+        <ErrorBoundary>
+          <Routes>
+            <Route path="/" element={<Landing />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/listings" element={<Listings />} />
+            <Route path="/listings/:id" element={<ListingDetail />} />
+            <Route path="/create-listing" element={<CreateListing />} />
+            <Route path="/history" element={<History />} />
+            <Route path="/collab-requests" element={<CollabRequests />} />
+            <Route path="/society/:userId" element={<PublicProfile />} />
+            <Route path="/chat" element={<Chat />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/signup" element={<SignUp />} />
+          </Routes>
+        </ErrorBoundary>
       </main>
     </BrowserRouter>
   );

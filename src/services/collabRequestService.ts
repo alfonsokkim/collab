@@ -24,9 +24,29 @@ export async function sendCollabRequest(
   listingId: string,
   toUserId: string,
   message?: string,
-): Promise<boolean> {
+): Promise<{ success: boolean; error?: string }> {
   const { data: userData } = await supabase.auth.getUser();
-  if (!userData.user) return false;
+  if (!userData.user) return { success: false, error: 'Not authenticated' };
+
+  // Check for a rejected request within the last 24 hours
+  const cooldownCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { data: recentRejection } = await supabase
+    .from('collab_requests')
+    .select('updated_at')
+    .eq('from_user_id', userData.user.id)
+    .eq('to_listing_id', listingId)
+    .eq('status', 'rejected')
+    .gte('updated_at', cooldownCutoff)
+    .limit(1)
+    .maybeSingle();
+
+  if (recentRejection) {
+    const rejectedAt = new Date(recentRejection.updated_at).getTime();
+    const availableAt = rejectedAt + 24 * 60 * 60 * 1000;
+    const hoursLeft = Math.ceil((availableAt - Date.now()) / (60 * 60 * 1000));
+    return { success: false, error: `You were recently rejected for this listing. Try again in ${hoursLeft} hour${hoursLeft === 1 ? '' : 's'}.` };
+  }
+
   const { error } = await supabase.from('collab_requests').insert([
     {
       from_user_id: userData.user.id,
@@ -37,8 +57,8 @@ export async function sendCollabRequest(
       status: 'pending',
     },
   ]);
-  if (error) console.error('Error sending collab request:', error);
-  return !error;
+  if (error) { console.error('Error sending collab request:', error); return { success: false, error: 'Failed to send request' }; }
+  return { success: true };
 }
 
 export async function fetchIncomingRequests(): Promise<CollabRequest[]> {

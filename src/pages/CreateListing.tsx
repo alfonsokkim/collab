@@ -28,7 +28,7 @@ export function CreateListing() {
   const [date, setDate] = useState('');
   const [peopleNeeded, setPeopleNeeded] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<{ blob: Blob; preview: string }[]>([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -63,34 +63,37 @@ export function CreateListing() {
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => {
-          const size = Math.min(img.width, img.height);
-          const canvas = document.createElement('canvas');
-          canvas.width = size;
-          canvas.height = size;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) return;
-
-          const offsetX = (img.width - size) / 2;
-          const offsetY = (img.height - size) / 2;
-          ctx.drawImage(img, offsetX, offsetY, size, size, 0, 0, size, size);
-          const base64 = canvas.toDataURL('image/jpeg', 0.8);
-          setImages((prev) => [...prev, base64]);
+      const objectUrl = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        const size = Math.min(img.width, img.height);
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        const offsetX = (img.width - size) / 2;
+        const offsetY = (img.height - size) / 2;
+        ctx.drawImage(img, offsetX, offsetY, size, size, 0, 0, size, size);
+        canvas.toBlob((blob) => {
+          if (!blob) return;
+          const preview = URL.createObjectURL(blob);
+          setImages((prev) => [...prev, { blob, preview }]);
           setError('');
-        };
-        img.src = event.target?.result as string;
+        }, 'image/jpeg', 0.8);
       };
-      reader.readAsDataURL(file);
+      img.src = objectUrl;
     });
 
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const removeImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
+    setImages((prev) => {
+      URL.revokeObjectURL(prev[index].preview);
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -138,7 +141,7 @@ export function CreateListing() {
           date,
           peopleNeeded: parseInt(peopleNeeded, 10),
           tags: selectedTags,
-          images: images.length > 0 ? images : undefined,
+          images: images.length > 0 ? images.map((i) => i.blob) : undefined,
         },
         societyName,
       );
@@ -201,7 +204,7 @@ export function CreateListing() {
                     key={idx}
                     className="relative aspect-square overflow-hidden rounded-[var(--radius)] shadow-[var(--shadow)]"
                   >
-                    <img src={image} alt={`Preview ${idx + 1}`} className="h-full w-full object-cover" />
+                    <img src={image.preview} alt={`Preview ${idx + 1}`} className="h-full w-full object-cover" />
                     <button
                       type="button"
                       onClick={() => removeImage(idx)}

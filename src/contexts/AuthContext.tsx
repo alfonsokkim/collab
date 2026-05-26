@@ -5,9 +5,10 @@ import { supabase } from '../lib/supabase';
 interface AuthContextType {
   user: any;
   loading: boolean;
-  signUp: (email: string, password: string, societyName: string, societyType: string) => Promise<void>;
+  signUp: (email: string, password: string, societyName: string, societyType: string) => Promise<string | null>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  deleteAccount: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -43,9 +44,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const signUp = async (email: string, password: string, societyName: string, societyType: string) => {
+  const signUp = async (email: string, password: string, societyName: string, societyType: string): Promise<string | null> => {
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -59,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) {
         throw error;
       }
+      return data.user?.id ?? null;
     } catch (error) {
       console.error('Sign up error:', error);
       throw error;
@@ -77,6 +79,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error('Sign in error:', error);
+      throw error;
+    }
+  };
+
+  const deleteAccount = async () => {
+    try {
+      const { error } = await supabase.rpc('delete_account');
+      if (error) throw error;
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Delete account error:', error);
       throw error;
     }
   };
@@ -101,6 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signUp,
         signIn,
         signOut,
+        deleteAccount,
       }}
     >
       {children}

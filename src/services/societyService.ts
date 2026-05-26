@@ -32,50 +32,17 @@ export interface SocietyProfile {
   createdAt?: string;
 }
 
-// Convert base64 to blob
-function base64ToBlob(base64: string): Blob {
-  const parts = base64.split(';base64,');
-  const contentType = parts[0].split(':')[1];
-  const raw = window.atob(parts[1]);
-  const rawLength = raw.length;
-  const uintArray = new Uint8Array(rawLength);
-
-  for (let i = 0; i < rawLength; ++i) {
-    uintArray[i] = raw.charCodeAt(i);
-  }
-
-  return new Blob([uintArray], { type: contentType });
-}
-
-// Upload logo image to storage
-export async function uploadLogoImage(base64Image: string, userId: string): Promise<string | null> {
+// Upload logo image blob to storage
+export async function uploadLogoImage(blob: Blob, userId: string): Promise<string | null> {
   try {
-    console.log('Starting logo upload for user:', userId);
-    const blob = base64ToBlob(base64Image);
-    console.log('Blob created:', blob.size, 'bytes');
-
     const fileName = `${userId}-logo-${Date.now()}.jpg`;
-    console.log('Uploading to:', fileName);
-
     const { data, error } = await supabase.storage
       .from('listing-banners')
-      .upload(fileName, blob, {
-        cacheControl: '3600',
-        upsert: false,
-      });
+      .upload(fileName, blob, { contentType: 'image/jpeg', cacheControl: '3600', upsert: false });
 
-    if (error) {
-      console.error('Supabase upload error:', error);
-      return null;
-    }
+    if (error) { console.error('Supabase upload error:', error); return null; }
 
-    console.log('Upload successful, file path:', data.path);
-
-    const { data: urlData } = supabase.storage
-      .from('listing-banners')
-      .getPublicUrl(data.path);
-
-    console.log('Generated public URL:', urlData.publicUrl);
+    const { data: urlData } = supabase.storage.from('listing-banners').getPublicUrl(data.path);
     return urlData.publicUrl;
   } catch (error) {
     console.error('Error uploading logo image:', error);
@@ -129,16 +96,11 @@ export async function getSocietyProfile(userId: string): Promise<SocietyProfile 
 }
 
 // Create or update society profile
-export async function saveSocietyProfile(userId: string, profile: SocietyProfile): Promise<SocietyProfile | null> {
+export async function saveSocietyProfile(userId: string, profile: SocietyProfile, logoFile?: Blob): Promise<SocietyProfile | null> {
   try {
-    // Upload logo if provided
     let logoImageUrl = profile.logoImageUrl;
-    if (profile.logoImageUrl && profile.logoImageUrl.startsWith('data:')) {
-      console.log('Logo image is base64, uploading...');
-      logoImageUrl = (await uploadLogoImage(profile.logoImageUrl, userId)) || undefined;
-      console.log('Upload result - logoImageUrl:', logoImageUrl);
-    } else if (profile.logoImageUrl) {
-      console.log('Logo image is already a URL, keeping:', logoImageUrl);
+    if (logoFile) {
+      logoImageUrl = (await uploadLogoImage(logoFile, userId)) || undefined;
     }
 
     // Check if profile exists

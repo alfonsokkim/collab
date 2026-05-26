@@ -8,7 +8,7 @@ export interface ListingInput {
   peopleNeeded: number;
   tags: string[];
   bannerImage?: string;
-  images?: string[];
+  images?: (string | Blob)[];
 }
 
 export interface Listing extends ListingInput {
@@ -21,44 +21,17 @@ export interface Listing extends ListingInput {
   createdAt: string;
 }
 
-// Convert base64 to blob
-function base64ToBlob(base64: string): Blob {
-  const parts = base64.split(';base64,');
-  const contentType = parts[0].split(':')[1];
-  const raw = window.atob(parts[1]);
-  const rawLength = raw.length;
-  const uintArray = new Uint8Array(rawLength);
-
-  for (let i = 0; i < rawLength; ++i) {
-    uintArray[i] = raw.charCodeAt(i);
-  }
-
-  return new Blob([uintArray], { type: contentType });
-}
-
-// Upload banner image to storage
-export async function uploadBannerImage(base64Image: string, listingId: string): Promise<string | null> {
+// Upload a single image blob to storage
+export async function uploadBannerImage(blob: Blob, listingId: string): Promise<string | null> {
   try {
-    const blob = base64ToBlob(base64Image);
-
     const fileName = `${listingId}-${Date.now()}.jpg`;
     const { data, error } = await supabase.storage
       .from('listing-banners')
-      .upload(fileName, blob, {
-        cacheControl: '3600',
-        upsert: false,
-      });
+      .upload(fileName, blob, { contentType: 'image/jpeg', cacheControl: '3600', upsert: false });
 
-    if (error) {
-      console.error('Error uploading image:', error);
-      return null;
-    }
+    if (error) { console.error('Error uploading image:', error); return null; }
 
-    // Get public URL
-    const { data: urlData } = supabase.storage
-      .from('listing-banners')
-      .getPublicUrl(data.path);
-
+    const { data: urlData } = supabase.storage.from('listing-banners').getPublicUrl(data.path);
     return urlData.publicUrl;
   } catch (error) {
     console.error('Error uploading banner image:', error);
@@ -66,18 +39,14 @@ export async function uploadBannerImage(base64Image: string, listingId: string):
   }
 }
 
-// Upload multiple images to storage
-export async function uploadImages(base64Images: string[], listingId: string): Promise<string[]> {
-  const uploadedUrls: string[] = [];
-
-  for (let i = 0; i < base64Images.length; i++) {
-    const url = await uploadBannerImage(base64Images[i], `${listingId}-img-${i}`);
-    if (url) {
-      uploadedUrls.push(url);
-    }
+// Upload multiple image blobs to storage
+export async function uploadImages(blobs: Blob[], listingId: string): Promise<string[]> {
+  const urls: string[] = [];
+  for (let i = 0; i < blobs.length; i++) {
+    const url = await uploadBannerImage(blobs[i], `${listingId}-img-${i}`);
+    if (url) urls.push(url);
   }
-
-  return uploadedUrls;
+  return urls;
 }
 
 // Create a new listing
@@ -94,16 +63,9 @@ export async function createListing(listing: ListingInput, societyName: string):
     const tempListingId = `temp-${Date.now()}`;
 
     if (listing.images && listing.images.length > 0) {
-      imageUrls = await uploadImages(listing.images, tempListingId);
-      if (imageUrls.length > 0) {
-        bannerImageUrl = imageUrls[0];
-      }
-    } else if (listing.bannerImage) {
-      // Fallback for backward compatibility with single banner image
-      bannerImageUrl = await uploadBannerImage(listing.bannerImage, tempListingId);
-      if (bannerImageUrl) {
-        imageUrls = [bannerImageUrl];
-      }
+      const blobs = listing.images.filter((img): img is Blob => img instanceof Blob);
+      imageUrls = await uploadImages(blobs, tempListingId);
+      if (imageUrls.length > 0) bannerImageUrl = imageUrls[0];
     }
 
     // Create listing in database
@@ -287,22 +249,16 @@ export async function updateListing(listingId: string, updates: Partial<ListingI
     let imageUrls: string[] | undefined = undefined;
     let bannerImageUrl: string | undefined = undefined;
 
-    // Upload new images if provided
     if (updates.images && updates.images.length > 0) {
-      // Filter out existing URLs (they start with http) from newly uploaded base64 images
-      const newImages = updates.images.filter(img => img.startsWith('data:'));
-      if (newImages.length > 0) {
-        const uploadedUrls = await uploadImages(newImages, listingId);
-        // Combine with existing URLs
-        const existingUrls = updates.images.filter(img => !img.startsWith('data:'));
+      const newBlobs = updates.images.filter((img): img is Blob => img instanceof Blob);
+      const existingUrls = updates.images.filter((img): img is string => typeof img === 'string');
+      if (newBlobs.length > 0) {
+        const uploadedUrls = await uploadImages(newBlobs, listingId);
         imageUrls = [...existingUrls, ...uploadedUrls];
-        if (imageUrls.length > 0) {
-          bannerImageUrl = imageUrls[0];
-        }
+      } else {
+        imageUrls = existingUrls;
       }
-    } else if (updates.bannerImage && updates.bannerImage.startsWith('data:')) {
-      // Fallback for backward compatibility with single banner image
-      bannerImageUrl = (await uploadBannerImage(updates.bannerImage, listingId)) || undefined;
+      if (imageUrls.length > 0) bannerImageUrl = imageUrls[0];
     }
 
     const updateData: any = {

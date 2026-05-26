@@ -83,13 +83,14 @@ export function ListingDetail() {
   const [error, setError] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState<(string | { blob: Blob; preview: string })[]>([]);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryStartIndex, setGalleryStartIndex] = useState(0);
   const [interestOpen, setInterestOpen] = useState(false);
   const [interestMessage, setInterestMessage] = useState('');
   const [interestSending, setInterestSending] = useState(false);
   const [interestSent, setInterestSent] = useState(false);
+  const [interestError, setInterestError] = useState('');
   const [alreadyRequested, setAlreadyRequested] = useState(false);
 
   const [editForm, setEditForm] = useState<Partial<ListingData>>({
@@ -130,7 +131,7 @@ export function ListingDetail() {
 
         setListing(listingData);
         setEditForm(listingData);
-        setImages(listingData.imageUrls || []);
+        setImages(listingData.imageUrls || [] as string[]);
 
         if (user && user.id !== listingData.userId) {
           fetchOutgoingRequestedListingIds().then((ids) => setAlreadyRequested(ids.has(listingData.id)));
@@ -166,32 +167,38 @@ export function ListingDetail() {
         return;
       }
 
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const img = new Image();
-        img.onload = () => {
-          const size = Math.min(img.width, img.height);
-          const canvas = document.createElement('canvas');
-          canvas.width = size;
-          canvas.height = size;
-          const ctx = canvas.getContext('2d');
-          if (!ctx) return;
-          const offsetX = (img.width - size) / 2;
-          const offsetY = (img.height - size) / 2;
-          ctx.drawImage(img, offsetX, offsetY, size, size, 0, 0, size, size);
-          setImages((prev) => [...prev, canvas.toDataURL('image/jpeg', 0.8)]);
+      const objectUrl = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(objectUrl);
+        const size = Math.min(img.width, img.height);
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        const offsetX = (img.width - size) / 2;
+        const offsetY = (img.height - size) / 2;
+        ctx.drawImage(img, offsetX, offsetY, size, size, 0, 0, size, size);
+        canvas.toBlob((blob) => {
+          if (!blob) return;
+          const preview = URL.createObjectURL(blob);
+          setImages((prev) => [...prev, { blob, preview }]);
           setError('');
-        };
-        img.src = event.target?.result as string;
+        }, 'image/jpeg', 0.8);
       };
-      reader.readAsDataURL(file);
+      img.src = objectUrl;
     });
 
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const removeImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
+    setImages((prev) => {
+      const item = prev[index];
+      if (typeof item !== 'string') URL.revokeObjectURL(item.preview);
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   const toggleTag = (tag: string) => {
@@ -220,7 +227,7 @@ export function ListingDetail() {
         date: editForm.date!,
         peopleNeeded: editForm.peopleNeeded!,
         tags: editForm.tags!,
-        ...(images.length > 0 ? { images } : {}),
+        ...(images.length > 0 ? { images: images.map((img) => typeof img === 'string' ? img : img.blob) } : {}),
       });
 
       if (updated) {
@@ -319,7 +326,7 @@ export function ListingDetail() {
               {idx === 3 && galleryImages.length > 4 && (
                 <div className="absolute inset-0 flex items-center justify-center rounded-[var(--radius)] bg-black/55 backdrop-blur-sm">
                   <button
-                    className="rounded-[var(--radius-sm)] bg-white px-5 py-2.5 text-[13px] font-bold text-[var(--text)] transition hover:bg-[var(--primary)] hover:text-white"
+                    className="rounded-[var(--radius-sm)] bg-[var(--bg-light)] px-5 py-2.5 text-[13px] font-bold text-[var(--text)] transition hover:bg-[var(--primary)] hover:text-white"
                     onClick={(e) => {
                       e.stopPropagation();
                       setGalleryStartIndex(3);
@@ -396,7 +403,7 @@ export function ListingDetail() {
 
       <div
         className={cn(
-          'rounded-[var(--radius-lg)] border bg-white p-5 shadow-[var(--shadow-sm)] md:p-10',
+          'rounded-[var(--radius-lg)] border bg-[var(--bg)] p-5 shadow-[var(--shadow-sm)] md:p-10',
           isOwner ? 'border-[rgba(232,160,69,0.3)]' : 'border-[var(--border)]',
         )}
       >
@@ -494,7 +501,7 @@ export function ListingDetail() {
                         key={idx}
                         className="relative aspect-square overflow-hidden rounded-[var(--radius)] shadow-[var(--shadow)]"
                       >
-                        <img src={image} alt={`Preview ${idx + 1}`} className="h-full w-full object-cover" />
+                        <img src={typeof image === 'string' ? image : image.preview} alt={`Preview ${idx + 1}`} className="h-full w-full object-cover" />
                         <button
                           type="button"
                           onClick={() => removeImage(idx)}
@@ -691,11 +698,13 @@ export function ListingDetail() {
           onMessageChange={setInterestMessage}
           sending={interestSending}
           sent={interestSent}
+          sendError={interestError}
           onSend={async () => {
             setInterestSending(true);
-            const ok = await sendCollabRequest(listing.id, listing.userId, interestMessage);
+            const result = await sendCollabRequest(listing.id, listing.userId, interestMessage);
             setInterestSending(false);
-            if (ok) { setInterestSent(true); setAlreadyRequested(true); setTimeout(() => { setInterestOpen(false); setInterestSent(false); setInterestMessage(''); }, 900); }
+            if (result.success) { setInterestSent(true); setAlreadyRequested(true); setTimeout(() => { setInterestOpen(false); setInterestSent(false); setInterestMessage(''); }, 900); }
+            else if (result.error) { setInterestError(result.error); }
           }}
           onClose={() => { setInterestOpen(false); setInterestSent(false); setInterestMessage(''); }}
         />
@@ -711,6 +720,7 @@ function InterestModal({
   onMessageChange,
   sending,
   sent,
+  sendError,
   onSend,
   onClose,
 }: {
@@ -722,6 +732,7 @@ function InterestModal({
   onMessageChange: (v: string) => void;
   sending: boolean;
   sent: boolean;
+  sendError?: string;
   onSend: () => void;
   onClose: () => void;
 }) {
@@ -761,6 +772,11 @@ function InterestModal({
             className="w-full resize-none rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg-light)] px-3.5 py-3 text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-light)] focus:border-[var(--primary)] transition"
           />
         </div>
+        {sendError && (
+          <p className="mx-6 mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-600 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400">
+            {sendError}
+          </p>
+        )}
         <div className="flex items-center justify-end gap-2.5 border-t border-[var(--border-light)] px-6 py-4">
           <button
             onClick={onClose}
@@ -770,11 +786,13 @@ function InterestModal({
           </button>
           <button
             onClick={onSend}
-            disabled={sending || sent}
+            disabled={sending || sent || !!sendError}
             className={cn(
               'rounded-[var(--radius)] px-5 py-2 text-sm font-semibold text-white transition',
               sent
                 ? 'bg-green-600 cursor-default'
+                : sendError
+                ? 'cursor-not-allowed bg-[var(--text-light)] opacity-60'
                 : 'bg-[var(--dark)] hover:-translate-y-px hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed',
             )}
           >

@@ -53,6 +53,7 @@ function ExpressInterestModal({
   const [message, setMessage] = useState('');
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
+  const [sendError, setSendError] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -64,9 +65,10 @@ function ExpressInterestModal({
 
   const handleSend = async () => {
     setSending(true);
-    const ok = await sendCollabRequest(listing.id, listing.userId, message);
+    const result = await sendCollabRequest(listing.id, listing.userId, message);
     setSending(false);
-    if (ok) { setSent(true); setTimeout(() => onClose(true), 900); }
+    if (result.success) { setSent(true); setTimeout(() => onClose(true), 900); }
+    else if (result.error) { setSendError(result.error); }
   };
 
   return (
@@ -99,6 +101,11 @@ function ExpressInterestModal({
           />
         </div>
 
+        {sendError && (
+          <p className="mx-6 mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-[12px] text-red-600 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-400">
+            {sendError}
+          </p>
+        )}
         <div className="flex items-center justify-end gap-2.5 border-t border-[var(--border-light)] px-6 py-4">
           <button
             onClick={() => onClose(false)}
@@ -108,11 +115,13 @@ function ExpressInterestModal({
           </button>
           <button
             onClick={handleSend}
-            disabled={sending || sent}
+            disabled={sending || sent || !!sendError}
             className={cn(
               'rounded-[var(--radius)] px-5 py-2 text-sm font-semibold text-white transition',
               sent
                 ? 'bg-green-600 cursor-default'
+                : sendError
+                ? 'cursor-not-allowed bg-[var(--text-light)] opacity-60'
                 : 'bg-[var(--dark)] hover:-translate-y-px hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed',
             )}
           >
@@ -384,21 +393,33 @@ export function Listings() {
 
   const today = new Date(); today.setHours(0, 0, 0, 0);
 
-  const filteredListings = listings.filter((listing) => {
-    if (new Date(`${listing.rawDate}T00:00:00`) < today) return false;
-    const matchesEventType =
-      selectedEventTypes.length === 0 || selectedEventTypes.some((t) => listing.tags.includes(t));
-    const matchesSocietyType =
-      selectedSocietyTypes.length === 0 ||
-      (listing.societyType && selectedSocietyTypes.includes(listing.societyType));
+  const upcomingListings = listings.filter((l) => new Date(`${l.rawDate}T00:00:00`) >= today);
+
+  const matchesSearch = (listing: Listing) => {
     const q = searchQuery.toLowerCase();
-    const matchesSearch =
-      !q ||
-      listing.title.toLowerCase().includes(q) ||
-      listing.society.toLowerCase().includes(q) ||
-      listing.description.toLowerCase().includes(q);
-    return matchesEventType && matchesSocietyType && matchesSearch;
+    return !q || listing.title.toLowerCase().includes(q) || listing.society.toLowerCase().includes(q) || listing.description.toLowerCase().includes(q);
+  };
+
+  const filteredListings = upcomingListings.filter((listing) => {
+    const matchesEventType = selectedEventTypes.length === 0 || selectedEventTypes.some((t) => listing.tags.includes(t));
+    const matchesSocietyType = selectedSocietyTypes.length === 0 || (listing.societyType && selectedSocietyTypes.includes(listing.societyType));
+    return matchesEventType && matchesSocietyType && matchesSearch(listing);
   });
+
+  // Which event types have results given current society + search filters?
+  const availableEventTypes = new Set(
+    upcomingListings
+      .filter((l) => (selectedSocietyTypes.length === 0 || (l.societyType && selectedSocietyTypes.includes(l.societyType))) && matchesSearch(l))
+      .flatMap((l) => l.tags)
+  );
+
+  // Which society types have results given current event + search filters?
+  const availableSocietyTypes = new Set(
+    upcomingListings
+      .filter((l) => (selectedEventTypes.length === 0 || selectedEventTypes.some((t) => l.tags.includes(t))) && matchesSearch(l))
+      .map((l) => l.societyType)
+      .filter(Boolean)
+  );
 
   const hasFilters = selectedEventTypes.length > 0 || selectedSocietyTypes.length > 0 || searchQuery;
 
@@ -429,24 +450,31 @@ export function Listings() {
               Event Type
             </h3>
             <div className="flex flex-wrap gap-1 md:flex-col md:gap-0.5">
-              {EVENT_TYPES.map((tag) => (
-                <button
-                  key={tag}
-                  className={cn(
-                    'rounded-[var(--radius-sm)] border px-3 py-[7px] text-left text-[13px] font-medium transition',
-                    selectedEventTypes.includes(tag)
-                      ? 'border-[rgba(232,160,69,0.25)] bg-[var(--primary-subtle)] font-semibold text-[var(--primary-dark)]'
-                      : 'border-transparent bg-transparent text-[var(--text-mid)] hover:border-[var(--border)] hover:bg-[var(--bg-light)] hover:text-[var(--text)]',
-                  )}
-                  onClick={() =>
-                    setSelectedEventTypes((prev) =>
-                      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
-                    )
-                  }
-                >
-                  {tag}
-                </button>
-              ))}
+              {EVENT_TYPES.map((tag) => {
+                const isSelected = selectedEventTypes.includes(tag);
+                const isUnavailable = !isSelected && !availableEventTypes.has(tag);
+                return (
+                  <button
+                    key={tag}
+                    disabled={isUnavailable}
+                    className={cn(
+                      'rounded-[var(--radius-sm)] border px-3 py-[7px] text-left text-[13px] font-medium transition',
+                      isSelected
+                        ? 'border-[rgba(232,160,69,0.25)] bg-[var(--primary-subtle)] font-semibold text-[var(--primary-dark)]'
+                        : isUnavailable
+                        ? 'cursor-not-allowed border-transparent bg-transparent text-[var(--text-light)] opacity-40'
+                        : 'border-transparent bg-transparent text-[var(--text-mid)] hover:border-[var(--border)] hover:bg-[var(--bg-light)] hover:text-[var(--text)]',
+                    )}
+                    onClick={() =>
+                      setSelectedEventTypes((prev) =>
+                        prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
+                      )
+                    }
+                  >
+                    {tag}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -455,13 +483,19 @@ export function Listings() {
               Society Type
             </h3>
             <div className="flex flex-wrap gap-1 md:flex-col md:gap-0.5">
-              {SOCIETY_TYPES.map((type) => (
+              {SOCIETY_TYPES.map((type) => {
+                const isSelected = selectedSocietyTypes.includes(type);
+                const isUnavailable = !isSelected && !availableSocietyTypes.has(type);
+                return (
                 <button
                   key={type}
+                  disabled={isUnavailable}
                   className={cn(
                     'rounded-[var(--radius-sm)] border px-3 py-[7px] text-left text-[13px] font-medium transition',
-                    selectedSocietyTypes.includes(type)
+                    isSelected
                       ? 'border-[rgba(232,160,69,0.25)] bg-[var(--primary-subtle)] font-semibold text-[var(--primary-dark)]'
+                      : isUnavailable
+                      ? 'cursor-not-allowed border-transparent bg-transparent text-[var(--text-light)] opacity-40'
                       : 'border-transparent bg-transparent text-[var(--text-mid)] hover:border-[var(--border)] hover:bg-[var(--bg-light)] hover:text-[var(--text)]',
                   )}
                   onClick={() =>
@@ -472,7 +506,8 @@ export function Listings() {
                 >
                   {type}
                 </button>
-              ))}
+                );
+              })}
             </div>
           </div>
 

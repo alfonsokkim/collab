@@ -2,12 +2,14 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   AlertCircle,
+  AlertTriangle,
   CalendarDays,
   Clock3,
   Edit2,
   Pencil,
   Plus,
   Save,
+  Trash2,
   Users,
   X,
 } from 'lucide-react';
@@ -107,14 +109,14 @@ function EventCard({
 }) {
   return (
     <article
-      className="cursor-pointer overflow-hidden rounded-[22px] border border-[var(--border)] bg-[linear-gradient(180deg,#ffffff_0%,#fbfdff_100%)] transition hover:-translate-y-[3px] hover:border-[rgba(232,160,69,0.35)] hover:shadow-[0_16px_34px_rgba(15,23,42,0.08)]"
+      className="cursor-pointer overflow-hidden rounded-[22px] border border-[var(--border)] bg-[var(--bg)] transition hover:-translate-y-[3px] hover:border-[rgba(232,160,69,0.35)] hover:shadow-[0_16px_34px_rgba(15,23,42,0.08)]"
       onClick={() => onClick(listing.id)}
     >
-      <div className="aspect-[16/8.5] bg-slate-50">
+      <div className="aspect-[16/8.5] bg-[var(--bg-light)]">
         {listing.bannerImageUrl ? (
           <img src={listing.bannerImageUrl} alt={listing.title} className="h-full w-full object-cover" />
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,#fff1de_0%,#f8fafc_100%)] text-[var(--primary-dark)]">
+          <div className="flex h-full w-full items-center justify-center bg-[var(--primary-subtle)] text-[var(--primary-dark)]">
             <CalendarDays size={28} strokeWidth={1.5} />
           </div>
         )}
@@ -155,7 +157,7 @@ function EventCard({
 }
 
 export function Profile() {
-  const { user } = useAuth();
+  const { user, deleteAccount } = useAuth();
   const navigate = useNavigate();
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<ProfileTab>('upcoming');
@@ -163,9 +165,14 @@ export function Profile() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [logoImage, setLogoImage] = useState<string | null>(null);
+  const [logoBlob, setLogoBlob] = useState<Blob | null>(null);
   const [eventDates, setEventDates] = useState<Date[]>([]);
   const [listings, setListings] = useState<Listing[]>([]);
   const [showRatings, setShowRatings] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirmName, setDeleteConfirmName] = useState('');
+  const [deleteNameError, setDeleteNameError] = useState('');
+  const [deleting, setDeleting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [society, setSociety] = useState<SocietyProfile>({
@@ -236,28 +243,30 @@ export function Profile() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const size = Math.min(img.width, img.height);
-        const canvas = document.createElement('canvas');
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return;
-
-        const offsetX = (img.width - size) / 2;
-        const offsetY = (img.height - size) / 2;
-        ctx.drawImage(img, offsetX, offsetY, size, size, 0, 0, size, size);
-        const base64 = canvas.toDataURL('image/jpeg', 0.8);
-        setLogoImage(base64);
-        setEditForm({ ...editForm, logoImageUrl: base64 });
+    const objectUrl = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      const size = Math.min(img.width, img.height);
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      const offsetX = (img.width - size) / 2;
+      const offsetY = (img.height - size) / 2;
+      ctx.drawImage(img, offsetX, offsetY, size, size, 0, 0, size, size);
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const preview = URL.createObjectURL(blob);
+        if (logoImage && logoImage.startsWith('blob:')) URL.revokeObjectURL(logoImage);
+        setLogoBlob(blob);
+        setLogoImage(preview);
+        setEditForm({ ...editForm, logoImageUrl: preview });
         setError('');
-      };
-      img.src = event.target?.result as string;
+      }, 'image/jpeg', 0.8);
     };
-    reader.readAsDataURL(file);
+    img.src = objectUrl;
   };
 
   const handleSave = async () => {
@@ -272,10 +281,11 @@ export function Profile() {
     setError('');
 
     try {
-      const updated = await saveSocietyProfile(user.id, editForm);
+      const updated = await saveSocietyProfile(user.id, editForm, logoBlob ?? undefined);
       if (updated) {
         setSociety(updated);
         setEditForm(updated);
+        setLogoBlob(null);
         setLogoImage(updated.logoImageUrl || null);
         setIsEditing(false);
       }
@@ -387,14 +397,14 @@ export function Profile() {
                     value={editForm.name}
                     onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
                     placeholder="Society Name"
-                    className="mb-3.5 w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-center text-2xl font-bold text-[var(--text)] outline-none focus:border-[rgba(232,160,69,0.6)] focus:shadow-[0_0_0_4px_rgba(232,160,69,0.14)]"
+                    className="mb-3.5 w-full rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 text-center text-2xl font-bold text-[var(--text)] outline-none focus:border-[rgba(232,160,69,0.6)] focus:shadow-[0_0_0_4px_rgba(232,160,69,0.14)]"
                   />
                   <textarea
                     value={editForm.description || ''}
                     onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                     placeholder="Tell people what your society is about..."
                     rows={5}
-                    className="min-h-[140px] w-full resize-y rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-[15px] leading-[1.65] text-[var(--text)] outline-none focus:border-[rgba(232,160,69,0.6)] focus:shadow-[0_0_0_4px_rgba(232,160,69,0.14)]"
+                    className="min-h-[140px] w-full resize-y rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 text-[15px] leading-[1.65] text-[var(--text)] outline-none focus:border-[rgba(232,160,69,0.6)] focus:shadow-[0_0_0_4px_rgba(232,160,69,0.14)]"
                   />
                 </>
               ) : (
@@ -459,6 +469,7 @@ export function Profile() {
                   <button
                     onClick={() => {
                       setEditForm(society);
+                      setLogoBlob(null);
                       setLogoImage(society.logoImageUrl || null);
                       setError('');
                       setIsEditing(false);
@@ -467,6 +478,13 @@ export function Profile() {
                   >
                     <X size={18} />
                     Cancel
+                  </button>
+                  <button
+                    onClick={() => { setDeleteConfirmName(''); setDeleteNameError(''); setShowDeleteModal(true); }}
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-red-200 bg-red-50 px-[18px] py-[13px] text-sm font-bold text-red-600 transition hover:border-red-300 hover:bg-red-100 [html[data-theme=dark]_&]:border-red-900/50 [html[data-theme=dark]_&]:bg-red-950/40 [html[data-theme=dark]_&]:text-red-400 [html[data-theme=dark]_&]:hover:border-red-800/70 [html[data-theme=dark]_&]:hover:bg-red-950/60"
+                  >
+                    <Trash2 size={18} />
+                    Delete Account
                   </button>
                 </>
               ) : (
@@ -504,7 +522,7 @@ export function Profile() {
                     value={editForm.membersCount || 0}
                     onChange={(e) => setEditForm({ ...editForm, membersCount: parseInt(e.target.value || '0', 10) })}
                     min="0"
-                    className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 outline-none focus:border-[rgba(232,160,69,0.6)] focus:shadow-[0_0_0_4px_rgba(232,160,69,0.14)]"
+                    className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 text-[var(--text)] outline-none focus:border-[rgba(232,160,69,0.6)] focus:shadow-[0_0_0_4px_rgba(232,160,69,0.14)]"
                   />
                 </div>
                 <div className="flex flex-col gap-2">
@@ -522,7 +540,7 @@ export function Profile() {
                     }
                     min="2000"
                     max={new Date().getFullYear()}
-                    className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 outline-none focus:border-[rgba(232,160,69,0.6)] focus:shadow-[0_0_0_4px_rgba(232,160,69,0.14)]"
+                    className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 text-[var(--text)] outline-none focus:border-[rgba(232,160,69,0.6)] focus:shadow-[0_0_0_4px_rgba(232,160,69,0.14)]"
                   />
                 </div>
               </div>
@@ -570,7 +588,7 @@ export function Profile() {
                   value={user?.email || ''}
                   readOnly
                   disabled
-                  className="rounded-2xl border border-[var(--border)] bg-slate-50 px-4 py-3 text-[var(--text-light)] outline-none cursor-not-allowed select-none"
+                  className="rounded-2xl border border-[var(--border)] bg-[var(--bg-light)] px-4 py-3 text-[var(--text-light)] outline-none cursor-not-allowed select-none"
                 />
               </div>
 
@@ -590,7 +608,7 @@ export function Profile() {
                       value={(editForm as any)[key] || ''}
                       onChange={(e) => setEditForm({ ...editForm, [key]: e.target.value })}
                       placeholder={placeholder}
-                      className="rounded-2xl border border-[var(--border)] bg-white px-4 py-3 outline-none focus:border-[rgba(232,160,69,0.6)] focus:shadow-[0_0_0_4px_rgba(232,160,69,0.14)]"
+                      className="rounded-2xl border border-[var(--border)] bg-[var(--bg)] px-4 py-3 text-[var(--text)] outline-none focus:border-[rgba(232,160,69,0.6)] focus:shadow-[0_0_0_4px_rgba(232,160,69,0.14)]"
                     />
                   </div>
                 ))}
@@ -604,7 +622,7 @@ export function Profile() {
                   className={cn(
                     'inline-flex items-center justify-center gap-2 rounded-2xl border px-[18px] py-[13px] text-sm font-bold transition',
                     activeTab === 'upcoming'
-                      ? 'border-[rgba(232,160,69,0.35)] bg-[#fdf1e2] text-[#9a5f14]'
+                      ? 'border-[rgba(232,160,69,0.35)] bg-[var(--primary-subtle)] text-[var(--primary-dark)]'
                       : 'border-[var(--border)] bg-[var(--bg-light)] text-[var(--text-mid)] hover:border-[rgba(232,160,69,0.34)] hover:text-[var(--text)]',
                   )}
                   onClick={() => setActiveTab('upcoming')}
@@ -616,7 +634,7 @@ export function Profile() {
                   className={cn(
                     'inline-flex items-center justify-center gap-2 rounded-2xl border px-[18px] py-[13px] text-sm font-bold transition',
                     activeTab === 'history'
-                      ? 'border-[rgba(232,160,69,0.35)] bg-[#fdf1e2] text-[#9a5f14]'
+                      ? 'border-[rgba(232,160,69,0.35)] bg-[var(--primary-subtle)] text-[var(--primary-dark)]'
                       : 'border-[var(--border)] bg-[var(--bg-light)] text-[var(--text-mid)] hover:border-[rgba(232,160,69,0.34)] hover:text-[var(--text)]',
                   )}
                   onClick={() => setActiveTab('history')}
@@ -678,6 +696,78 @@ export function Profile() {
           reviewCount={reviewCount}
           onClose={() => setShowRatings(false)}
         />
+      )}
+
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
+          <div className="w-full max-w-[460px] rounded-[28px] border border-red-200 bg-[var(--bg)] p-8 shadow-[0_32px_64px_rgba(0,0,0,0.2)]">
+            <div className="mb-5 flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-100">
+                <AlertTriangle size={22} className="text-red-600" />
+              </div>
+              <h2 className="text-[22px] font-bold text-[var(--text)]">Delete Account</h2>
+            </div>
+
+            <div className="mb-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3.5 text-[13.5px] leading-[1.65] text-red-700">
+              <p className="font-bold mb-1">⚠ This cannot be undone.</p>
+              <p>Deleting your account will permanently remove your society profile, all listings, collab requests, and messages. There is no way to recover any of this data.</p>
+            </div>
+
+            <p className="mb-3 text-[14px] text-[var(--text-mid)]">
+              To confirm, type your society name exactly as it appears:
+            </p>
+            <p className="mb-3 rounded-xl border border-[var(--border)] bg-[var(--bg-light)] px-3.5 py-2.5 text-center text-[15px] font-bold text-[var(--text)]">
+              {society.name || 'My Society'}
+            </p>
+
+            <input
+              type="text"
+              value={deleteConfirmName}
+              onChange={(e) => { setDeleteConfirmName(e.target.value); setDeleteNameError(''); }}
+              placeholder="Type society name here..."
+              autoFocus
+              className="mb-2 w-full rounded-2xl border border-[var(--border)] bg-[var(--bg-light)] px-4 py-3 text-[15px] text-[var(--text)] outline-none focus:border-red-400 focus:shadow-[0_0_0_3px_rgba(239,68,68,0.12)]"
+            />
+            {deleteNameError && (
+              <p className="mb-3 flex items-center gap-1.5 text-[13px] font-semibold text-red-600">
+                <X size={14} />
+                {deleteNameError}
+              </p>
+            )}
+
+            <div className="mt-5 flex flex-col gap-2.5">
+              <button
+                disabled={deleting}
+                onClick={async () => {
+                  const expected = (society.name || 'My Society').trim();
+                  if (deleteConfirmName.trim() !== expected) {
+                    setDeleteNameError(`That's not right — check the name and try again.`);
+                    return;
+                  }
+                  setDeleting(true);
+                  try {
+                    await deleteAccount();
+                    navigate('/');
+                  } catch {
+                    setDeleteNameError('Failed to delete account. Please try again.');
+                    setDeleting(false);
+                  }
+                }}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-red-600 px-5 py-3.5 text-sm font-bold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                <Trash2 size={16} />
+                {deleting ? 'Deleting account...' : 'Permanently Delete My Account'}
+              </button>
+              <button
+                disabled={deleting}
+                onClick={() => setShowDeleteModal(false)}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[var(--border)] bg-[var(--bg-light)] px-5 py-3.5 text-sm font-bold text-[var(--text-mid)] transition hover:text-[var(--text)] disabled:opacity-50"
+              >
+                Cancel, keep my account
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
