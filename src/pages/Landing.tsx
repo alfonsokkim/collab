@@ -45,8 +45,8 @@ export function Landing() {
         </button>
       </div>
 
-      {/* Gag tag — fixed to viewport, never affects page height */}
-      <div className="fixed bottom-5 right-6 z-50">
+      {/* Gag tag */}
+      <div className="fixed bottom-4 right-6 z-50 sm:bottom-5">
         <p className="flex items-center gap-2 text-[12px] font-medium text-black/25 dark:text-white/25">
           cos we couldnt find collabs...
           <img
@@ -58,7 +58,7 @@ export function Landing() {
       </div>
 
       {/* Footer */}
-      <div className="fixed bottom-5 left-0 right-0 flex justify-center gap-5 text-[12px] text-black/25 dark:text-white/25">
+      <div className="fixed bottom-10 left-0 right-0 flex justify-center gap-5 text-[12px] text-black/25 dark:text-white/25 sm:bottom-5">
         <Link to="/terms" className="hover:text-black/50 dark:hover:text-white/50 transition-colors">Terms of Service</Link>
         <span className="opacity-40">·</span>
         <Link to="/privacy" className="hover:text-black/50 dark:hover:text-white/50 transition-colors">Privacy Policy</Link>
