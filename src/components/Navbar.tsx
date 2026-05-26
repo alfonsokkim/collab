@@ -5,7 +5,6 @@ import { useAuth } from '../contexts/AuthContext';
 import { fetchIncomingRequests } from '../services/collabRequestService';
 import type { CollabRequest } from '../services/collabRequestService';
 import { getTotalUnread } from '../services/chatService';
-import { cn } from '../lib/utils';
 
 function useDarkMode() {
   const [dark, setDark] = useState(() => {

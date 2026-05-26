@@ -326,7 +326,7 @@ function DesktopTimeline({
 
 function MobileTimeline({
   selectedUni, setSelectedUni, selectedYear, setSelectedYear, selectedTerm, setSelectedTerm,
-  termKeys, weeks, currentIdx, eventsByWeek, weekCount, events,
+  weeks, currentIdx, eventsByWeek, events,
 }: {
   selectedUni: SelectedUni;
   setSelectedUni: (u: SelectedUni) => void;
@@ -334,11 +334,9 @@ function MobileTimeline({
   setSelectedYear: (y: Year) => void;
   selectedTerm: string;
   setSelectedTerm: (t: string) => void;
-  termKeys: string[];
   weeks: WeekCell[];
   currentIdx: number;
   eventsByWeek: Map<number, { id: string; title: string; date: string; eventDate: Date }[]>;
-  weekCount: number;
   events: { id: string; title: string; date: string; eventDate: Date }[];
 }) {
   const [timelineOpen, setTimelineOpen] = useState(false);
@@ -642,19 +640,26 @@ export function AcademicTimeline({ eventDates, events = [], university }: Academ
 
   const weekCount = weeks.length;
 
-  const sharedProps = {
+  const desktopProps = {
     selectedUni, setSelectedUni,
     selectedYear, setSelectedYear,
     selectedTerm, setSelectedTerm,
     termKeys, weeks, currentIdx, eventsByWeek, weekCount,
   };
 
+  const mobileProps = {
+    selectedUni, setSelectedUni,
+    selectedYear, setSelectedYear,
+    selectedTerm, setSelectedTerm,
+    weeks, currentIdx, eventsByWeek,
+  };
+
   return (
     <div className="bg-[var(--bg)] px-3 py-3 md:px-4 md:py-3 rounded-3xl">
       {isMobile ? (
-        <MobileTimeline {...sharedProps} events={timelineEvents} />
+        <MobileTimeline {...mobileProps} events={timelineEvents} />
       ) : (
-        <DesktopTimeline {...sharedProps} eventDates={eventDates} />
+        <DesktopTimeline {...desktopProps} eventDates={eventDates} />
       )}
     </div>
   );

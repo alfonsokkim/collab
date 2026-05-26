@@ -14,7 +14,6 @@ import {
   Users,
   X,
 } from 'lucide-react';
-import { cn } from '../lib/utils';
 import { useAuth } from '../contexts/AuthContext';
 import { saveSocietyProfile } from '../services/societyService';
 
@@ -37,8 +36,6 @@ interface FormData {
 
 // ─── Shared field components ──────────────────────────────────────────────────
 
-const inputClass =
-  'w-full rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg-light)] px-3.5 py-[10px] text-[14px] text-[var(--text)] outline-none transition placeholder:text-[var(--text-light)] focus:border-[var(--primary)] focus:bg-[var(--bg)] focus:shadow-[0_0_0_3px_rgba(232,160,69,0.1)]';
 
 function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
   return (

@@ -227,7 +227,7 @@ export function ListingDetail() {
         date: editForm.date!,
         peopleNeeded: editForm.peopleNeeded!,
         tags: editForm.tags!,
-        ...(images.length > 0 ? { images: images.map((img) => typeof img === 'string' ? img : img.blob) } : {}),
+        ...(images.length > 0 ? { images: images.map((img) => typeof img === 'string' ? img : img.blob).filter((img): img is string => typeof img === 'string') } : {}),
       });
 
       if (updated) {

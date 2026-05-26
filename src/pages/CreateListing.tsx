@@ -418,7 +418,7 @@ export function CreateListing() {
               >
                 🌐 All universities
               </button>
-              {UNIVERSITIES.map(({ id, label }) => {
+              {UNIVERSITIES.map(({ id }) => {
                 const selected = visibleToUniversities?.includes(id) ?? false;
                 return (
                   <button

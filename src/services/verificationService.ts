@@ -116,7 +116,8 @@ export async function findRegistryMatch(societyName: string): Promise<{
   const uniPrefixes = ['UNSW ', 'USyd ', 'UTS ', 'Macquarie ', 'Western Sydney '];
   const queries = [societyName, ...uniPrefixes.map((p) => p + societyName)];
 
-  let best: (typeof results)[0] | undefined;
+  type FuseResult = ReturnType<typeof fuse.search>[0];
+  let best: FuseResult | undefined;
   for (const q of queries) {
     const results = fuse.search(q);
     if (!results.length) continue;
