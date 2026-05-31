@@ -559,6 +559,23 @@ export function Listings() {
             <div className="flex min-h-[300px] items-center justify-center text-[15px] text-[var(--text-light)]">
               Loading listings...
             </div>
+          ) : paginatedListings.length === 0 ? (
+            <div className="flex min-h-[300px] flex-col items-center justify-center gap-3 text-center">
+              <Search size={24} className="text-[var(--text-light)] opacity-40" />
+              {hasFilters ? (
+                <>
+                  <p className="text-[14px] text-[var(--text-light)]">No listings match your filters.</p>
+                  <button
+                    onClick={() => { setSelectedEventTypes([]); setSelectedSocietyTypes([]); setSearchQuery(''); }}
+                    className="text-[13px] font-medium text-[var(--primary-dark)] hover:underline underline-offset-2"
+                  >
+                    Clear filters
+                  </button>
+                </>
+              ) : (
+                <p className="text-[14px] text-[var(--text-light)]">No listings yet — be the first to <Link to="/create-listing" className="font-medium text-[var(--primary-dark)] hover:underline underline-offset-2">post one</Link>.</p>
+              )}
+            </div>
           ) : (
             <div
               className="flex flex-col gap-2.5 transition-all duration-300"

@@ -1,6 +1,35 @@
 import { supabase } from '../lib/supabase';
 import { cacheGet, cacheSet, cacheDelete } from '../lib/cache';
 
+const SOCIAL_PREFIXES: Record<string, string[]> = {
+  instagram: ['https://www.instagram.com/', 'https://instagram.com/', 'instagram.com/'],
+  facebook:  ['https://www.facebook.com/', 'https://facebook.com/', 'facebook.com/'],
+  linkedin:  ['https://www.linkedin.com/in/', 'https://linkedin.com/in/', 'linkedin.com/in/',
+               'https://www.linkedin.com/company/', 'https://linkedin.com/company/', 'linkedin.com/company/'],
+  discord:   ['https://discord.gg/', 'https://discord.com/invite/', 'discord.gg/', 'discord.com/invite/'],
+};
+
+function stripSocialPrefix(field: keyof typeof SOCIAL_PREFIXES, value?: string): string | undefined {
+  if (!value) return value;
+  const trimmed = value.trim();
+  for (const prefix of SOCIAL_PREFIXES[field]) {
+    if (trimmed.toLowerCase().startsWith(prefix)) {
+      return trimmed.slice(prefix.length).replace(/\/$/, '');
+    }
+  }
+  return trimmed;
+}
+
+function normaliseSocials(profile: SocietyProfile): SocietyProfile {
+  return {
+    ...profile,
+    instagram:  stripSocialPrefix('instagram', profile.instagram),
+    facebook:   stripSocialPrefix('facebook',  profile.facebook),
+    linkedin:   stripSocialPrefix('linkedin',  profile.linkedin),
+    discordUrl: stripSocialPrefix('discord',   profile.discordUrl),
+  };
+}
+
 export const UNIVERSITIES = [
   { id: 'UNSW', label: 'UNSW Sydney' },
   { id: 'USYD', label: 'University of Sydney' },
@@ -108,7 +137,8 @@ export async function getSocietyProfile(userId: string): Promise<SocietyProfile 
 }
 
 // Create or update society profile
-export async function saveSocietyProfile(userId: string, profile: SocietyProfile, logoFile?: Blob): Promise<SocietyProfile | null> {
+export async function saveSocietyProfile(userId: string, rawProfile: SocietyProfile, logoFile?: Blob): Promise<SocietyProfile | null> {
+  const profile = normaliseSocials(rawProfile);
   try {
     let logoImageUrl = profile.logoImageUrl;
     if (logoFile) {

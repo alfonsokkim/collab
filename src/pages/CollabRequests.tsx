@@ -135,12 +135,15 @@ export function CollabRequests() {
     if (status === 'accepted') {
       const req = incoming.find((r) => r.id === requestId);
       if (req) {
-        // For host-initiated: we (invitee) accepted, chat room between listing owner and us
-        const hostId = req.initiatedBy === 'host' ? req.fromUserId : req.fromUserId;
+        // p_new_member_id is the society joining the listing's group room.
+        // If a society applied to our listing, they are the new member.
+        // If we were invited by a host, we (current user) are the new member — the
+        // function also adds auth.uid() automatically, so pass fromUserId as a hint.
+        const newMemberId = req.initiatedBy === 'applicant' ? req.fromUserId : req.fromUserId;
         const roomId = await getOrCreateListingRoom(
           req.toListing.id,
           req.toListing.title,
-          hostId,
+          newMemberId,
         );
         if (roomId) navigate(`/chat?room=${roomId}`);
       }
@@ -237,7 +240,12 @@ export function CollabRequests() {
             </p>
 
             {listings.length === 0 ? (
-              <p className="text-[var(--text-light)]">You have no active listings.</p>
+              <div className="rounded-[var(--radius-lg)] border border-dashed border-[var(--border)] px-6 py-10 text-center">
+                <p className="text-[14px] text-[var(--text-light)]">You have no active listings.</p>
+                <Link to="/create-listing" className="mt-2 inline-block text-[13px] font-medium text-[var(--primary-dark)] hover:underline underline-offset-2">
+                  Create a listing
+                </Link>
+              </div>
             ) : (
               <div className="grid items-start gap-7 md:grid-cols-[200px_minmax(0,1fr)]">
                 {/* Sidebar — listing tabs */}

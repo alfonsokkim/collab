@@ -227,8 +227,8 @@ function ListingCard({
           Collaborating Societies
         </h4>
         {collabs.length === 0 ? (
-          <p className="py-2 text-sm text-[var(--text-light)] opacity-60">
-            No accepted collaborators yet
+          <p className="py-2 text-[13px] text-[var(--text-light)] opacity-50">
+            No collaborators yet
           </p>
         ) : (
           <div className="divide-y divide-[var(--border-light)]">

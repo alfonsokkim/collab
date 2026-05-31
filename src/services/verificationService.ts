@@ -25,25 +25,15 @@ export function computeTrustScore(params: {
   societyType: string;
   registryMatch?: { score: number; entry: RegistryEntry };
 }): { score: number; reasons: string[] } {
-  const { email, societyName, societyType, registryMatch } = params;
+  const { societyName, societyType, registryMatch } = params;
   const reasons: string[] = [];
   let score = 0;
 
-  // Email domain signals (max 30 pts)
-  const domain = email.split('@')[1]?.toLowerCase() ?? '';
-  if (domain === 'unsw.edu.au') {
-    score += 30;
-    reasons.push('UNSW email domain (+30)');
-  } else if (domain.endsWith('.edu.au') || domain.endsWith('.edu')) {
-    score += 15;
-    reasons.push('Educational email domain (+15)');
-  }
-
-  // Fuzzy registry match (max 50 pts)
+  // Fuzzy registry match (max 80 pts) — primary signal
   if (registryMatch) {
     // Fuse score: 0 = perfect, 1 = no match. Invert to 0–1 where 1 = perfect.
     const matchQuality = 1 - registryMatch.score;
-    const matchPoints = Math.round(matchQuality * 50);
+    const matchPoints = Math.round(matchQuality * 80);
     score += matchPoints;
     reasons.push(`Registry name match ${Math.round(matchQuality * 100)}% (+${matchPoints})`);
 
@@ -51,12 +41,6 @@ export function computeTrustScore(params: {
     if (registryMatch.entry.type.toLowerCase() === societyType.toLowerCase()) {
       score += 10;
       reasons.push('Society type matches registry (+10)');
-    }
-
-    // Bonus: email domain matches registry domain
-    if (registryMatch.entry.email_domain && domain === registryMatch.entry.email_domain) {
-      score += 10;
-      reasons.push('Email domain matches registry (+10)');
     }
   } else {
     reasons.push('No registry match found (+0)');

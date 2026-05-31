@@ -276,7 +276,9 @@ export function Chat() {
               {loadingMessages ? (
                 <p className="text-center text-[13px] text-[var(--text-light)]">Loading messages...</p>
               ) : messages.length === 0 ? (
-                <p className="text-center text-[13px] text-[var(--text-light)]">No messages yet. Say hello!</p>
+                <div className="flex h-full items-center justify-center">
+                  <p className="text-[13px] text-[var(--text-light)] opacity-60">No messages yet. Say hello!</p>
+                </div>
               ) : (
                 <div className="flex flex-col gap-2">
                   {messages.map((msg, i) => {

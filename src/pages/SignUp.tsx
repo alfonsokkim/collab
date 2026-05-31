@@ -12,7 +12,7 @@ import {
   type VerificationResult,
 } from '../services/verificationService';
 
-type Step = 'form' | 'verifying' | 'result' | 'blocked';
+type Step = 'form' | 'verifying' | 'result' | 'blocked' | 'confirm';
 
 export function SignUp() {
   const [societyName, setSocietyName] = useState('');
@@ -69,15 +69,8 @@ export function SignUp() {
         return;
       }
 
-      const userId = await signUp(email, password, societyName, societyType);
-      if (userId) {
-        const [result] = await Promise.all([
-          runVerificationPipeline({ userId, email, societyName, societyType }),
-          saveSocietyProfile(userId, { name: societyName, societyType, university }),
-        ]);
-        setVerification(result);
-      }
-      setStep('result');
+      await signUp(email, password, societyName, societyType, university);
+      setStep('confirm');
     } catch (err: any) {
       setStep('form');
       const msg: string = err.message ?? '';
@@ -109,6 +102,26 @@ export function SignUp() {
           </div>
           <h2 className="mb-2 font-[var(--heading)] text-[22px] text-[var(--text)]">Verifying your society</h2>
           <p className="text-sm text-[var(--text-light)]">We're checking our society registry…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === 'confirm') {
+    return (
+      <div className="flex min-h-[calc(100vh-60px)] items-center justify-center bg-[var(--bg-light)] px-6 py-10">
+        <div className="w-full max-w-[420px] rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg)] px-6 py-12 shadow-[var(--shadow-lg)] text-center">
+          <div className="mb-5 flex justify-center">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--primary-subtle)]">
+              <Mail size={26} className="text-[var(--primary-dark)]" />
+            </div>
+          </div>
+          <h2 className="mb-2 font-[var(--heading)] text-[22px] text-[var(--text)]">Check your email</h2>
+          <p className="text-sm text-[var(--text-light)]">
+            We sent a confirmation link to <span className="font-semibold text-[var(--text)]">{email}</span>.
+            Click it to activate your account — your society profile will be set up automatically.
+          </p>
+          <p className="mt-4 text-[12px] text-[var(--text-light)]">You can close this tab.</p>
         </div>
       </div>
     );

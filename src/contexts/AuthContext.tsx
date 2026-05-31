@@ -5,7 +5,7 @@ import { supabase } from '../lib/supabase';
 interface AuthContextType {
   user: any;
   loading: boolean;
-  signUp: (email: string, password: string, societyName: string, societyType: string) => Promise<string | null>;
+  signUp: (email: string, password: string, societyName: string, societyType: string, university?: string) => Promise<string | null>;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   deleteAccount: () => Promise<void>;
@@ -44,7 +44,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  const signUp = async (email: string, password: string, societyName: string, societyType: string): Promise<string | null> => {
+  const signUp = async (email: string, password: string, societyName: string, societyType: string, university?: string): Promise<string | null> => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
@@ -53,12 +53,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           data: {
             society_name: societyName,
             society_type: societyType,
+            university: university ?? null,
+            profile_pending: true,
           },
         },
       });
 
       if (error) {
         throw error;
+      }
+      // If email confirmation is disabled, session is available immediately — set it
+      // so subsequent inserts (societies, verification_requests) pass RLS auth.uid() checks.
+      if (data.session) {
+        await supabase.auth.setSession(data.session);
       }
       return data.user?.id ?? null;
     } catch (error) {

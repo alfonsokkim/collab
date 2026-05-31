@@ -6,7 +6,8 @@ import { Onboarding } from './pages/Onboarding';
 import { useAuth } from './contexts/AuthContext';
 import { fetchListings, fetchListingsByUserId } from './services/listingService';
 import { fetchIncomingRequests } from './services/collabRequestService';
-import { getSocietyProfile } from './services/societyService';
+import { getSocietyProfile, saveSocietyProfile } from './services/societyService';
+import { runVerificationPipeline, type VerificationResult } from './services/verificationService';
 import { supabase } from './lib/supabase';
 import { Profile } from './pages/Profile';
 import { Listings } from './pages/Listings';
@@ -67,6 +68,61 @@ function OnboardingGate({ children }: { children: React.ReactNode }) {
   );
 }
 
+// After email confirmation, picks up pending profile data from user_metadata and completes signup
+function PendingProfileHandler() {
+  const { user } = useAuth();
+  const [verification, setVerification] = useState<VerificationResult | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    const meta = user.user_metadata;
+    if (!meta?.profile_pending) return;
+
+    const run = async () => {
+      const societyName = meta.society_name ?? '';
+      const societyType = meta.society_type ?? '';
+      const university = meta.university ?? '';
+      const email = user.email ?? '';
+
+      await saveSocietyProfile(user.id, { name: societyName, societyType, university });
+      const result = await runVerificationPipeline({ userId: user.id, email, societyName, societyType });
+
+      // Clear the flag so this doesn't re-run on future logins
+      await supabase.auth.updateUser({ data: { profile_pending: false } });
+
+      setVerification(result);
+    };
+    run();
+  }, [user]);
+
+  if (!verification) return null;
+
+  const labels: Record<string, string> = {
+    verified: 'Society Verified!',
+    pending: 'Verification Pending',
+    unverified: 'Account Created',
+    rejected: 'Verification Rejected',
+  };
+
+  return (
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center bg-black/40 px-4">
+      <div className="w-full max-w-[420px] rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg)] px-8 py-8 shadow-[var(--shadow-lg)] text-center">
+        <h2 className="mb-2 font-[var(--heading)] text-[22px] text-[var(--text)]">{labels[verification.status]}</h2>
+        <p className="mb-4 text-sm text-[var(--text-light)]">Trust score: {verification.trustScore}/100</p>
+        <ul className="mb-6 space-y-0.5 text-left text-[13px] text-[var(--text-light)]">
+          {verification.reasons.map((r, i) => <li key={i}>{r}</li>)}
+        </ul>
+        <button
+          onClick={() => setVerification(null)}
+          className="w-full rounded-[var(--radius)] bg-[var(--dark)] px-6 py-3 text-[15px] font-semibold text-white transition hover:bg-[var(--dark-surface)]"
+        >
+          Continue to Collab
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function LandingOrRedirect() {
   const { user, loading } = useAuth();
   if (loading) return null;
@@ -124,6 +180,7 @@ function App() {
   return (
     <BrowserRouter>
       <OnboardingGate>
+      <PendingProfileHandler />
       <Navbar />
       <main className="flex-1">
         <ErrorBoundary>
