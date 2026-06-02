@@ -1,4 +1,18 @@
-import { useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
+
+function useDark() {
+  const [dark, setDark] = useState(() =>
+    document.documentElement.getAttribute('data-theme') === 'dark'
+  );
+  useEffect(() => {
+    const obs = new MutationObserver(() =>
+      setDark(document.documentElement.getAttribute('data-theme') === 'dark')
+    );
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    return () => obs.disconnect();
+  }, []);
+  return dark;
+}
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, useScroll, useTransform, MotionValue } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
@@ -10,54 +24,65 @@ import {
 
 // ── Mock: Explore / Listings page ─────────────────────────────────────────────
 
-function ListingsPreview() {
+function ListingsPreview({ dark }: { dark: boolean }) {
+  const bg = dark ? 'bg-[#141414]' : 'bg-white';
+  const border = dark ? 'border-white/8' : 'border-black/8';
+  const labelCl = dark ? 'text-white/30' : 'text-black/30';
+  const mutedCl = dark ? 'text-white/25' : 'text-black/25';
+  const activeCl = dark ? 'text-white/70' : 'text-black/60';
+  const searchBg = dark ? 'bg-white/6 border-white/8' : 'bg-black/4 border-black/8';
+  const cardBg = dark ? 'bg-white/4 border-white/6' : 'bg-black/3 border-black/6';
+  const thumbBg = dark ? 'bg-white/8' : 'bg-black/5';
+  const societyBg = dark ? 'bg-white/10' : 'bg-black/6';
+  const textMain = dark ? 'text-white/85' : 'text-black/80';
+  const textSub = dark ? 'text-white/40' : 'text-black/40';
+  const textMeta = dark ? 'text-white/35' : 'text-black/35';
+
   return (
-    <div className="h-full bg-[#141414] rounded-xl overflow-hidden flex text-white" style={{ fontSize: 11 }}>
-      {/* Sidebar */}
-      <div className="w-[90px] shrink-0 border-r border-white/8 px-3 py-3 flex flex-col gap-3">
+    <div className={`h-full ${bg} rounded-xl overflow-hidden flex`} style={{ fontSize: 11, color: dark ? 'white' : 'black' }}>
+      <div className={`w-[90px] shrink-0 border-r ${border} px-3 py-3 flex flex-col gap-3`}>
         <div>
-          <div className="text-[8px] font-bold uppercase tracking-widest text-white/30 mb-1.5">Event Type</div>
+          <div className={`text-[8px] font-bold uppercase tracking-widest ${labelCl} mb-1.5`}>Event Type</div>
           {['Social', 'Networking', 'Workshop', 'Sports', 'Festival'].map((t, i) => (
-            <div key={t} className={`py-[3px] text-[10px] rounded px-1.5 mb-0.5 ${i === 0 ? 'bg-amber-500/15 text-amber-400 font-semibold' : i === 1 ? 'text-white/70 font-medium' : 'text-white/25'}`}>{t}</div>
+            <div key={t} className={`py-[3px] text-[10px] rounded px-1.5 mb-0.5 ${i === 0 ? 'bg-amber-500/15 text-amber-500 font-semibold' : i === 1 ? `${activeCl} font-medium` : mutedCl}`}>{t}</div>
           ))}
         </div>
-        <div className="border-t border-white/8 pt-2">
-          <div className="text-[8px] font-bold uppercase tracking-widest text-white/30 mb-1.5">Society Type</div>
+        <div className={`border-t ${border} pt-2`}>
+          <div className={`text-[8px] font-bold uppercase tracking-widest ${labelCl} mb-1.5`}>Society Type</div>
           {['Faculty', 'Hobby', 'Business', 'Tech'].map((t, i) => (
-            <div key={t} className={`py-[3px] text-[10px] rounded px-1.5 mb-0.5 ${i === 1 ? 'text-white/70 font-medium' : 'text-white/25'}`}>{t}</div>
+            <div key={t} className={`py-[3px] text-[10px] rounded px-1.5 mb-0.5 ${i === 1 ? `${activeCl} font-medium` : mutedCl}`}>{t}</div>
           ))}
         </div>
       </div>
-      {/* Main */}
       <div className="flex-1 flex flex-col p-2.5 gap-2 min-w-0">
-        <div className="flex items-center gap-2 bg-white/6 rounded-lg px-2.5 py-1.5 border border-white/8">
-          <Search size={10} className="text-white/30 shrink-0" />
-          <span className="text-[10px] text-white/30">Search listings…</span>
+        <div className={`flex items-center gap-2 ${searchBg} rounded-lg px-2.5 py-1.5 border`}>
+          <Search size={10} className={`${labelCl} shrink-0`} />
+          <span className={`text-[10px] ${labelCl}`}>Search listings…</span>
         </div>
-        <div className="text-[9px] text-white/30">2 listings found</div>
+        <div className={`text-[9px] ${labelCl}`}>2 listings found</div>
         {[
           { title: 'Hackathon Night 2025', society: 'UNSW Tech Society', type: 'Hobby', date: 'Aug 20, 2026', need: '50 people needed', tags: ['Social', 'Events', 'Tech'], dot: 'bg-blue-500' },
           { title: 'Winter Pub Crawl', society: 'Arc Outdoors', type: 'Faculty', date: 'Sep 5, 2026', need: '30 people needed', tags: ['Social', 'Festival'], dot: 'bg-purple-500' },
         ].map((c, i) => (
-          <div key={i} className="flex gap-2 bg-white/4 rounded-lg border border-white/6 overflow-hidden">
-            <div className={`w-10 shrink-0 flex items-center justify-center bg-white/8`}>
+          <div key={i} className={`flex gap-2 ${cardBg} rounded-lg border overflow-hidden`}>
+            <div className={`w-10 shrink-0 flex items-center justify-center ${thumbBg}`}>
               <div className={`w-4 h-4 rounded-full ${c.dot} opacity-70`} />
             </div>
             <div className="flex-1 py-2 min-w-0">
               <div className="flex items-start justify-between gap-1 mb-0.5">
-                <span className="font-semibold text-white/85 text-[10px] leading-tight">{c.title}</span>
+                <span className={`font-semibold ${textMain} text-[10px] leading-tight`}>{c.title}</span>
                 <div className="flex gap-0.5 shrink-0">
-                  {c.tags.map(t => <span key={t} className="text-[7px] font-bold bg-amber-500/15 text-amber-400 px-1 py-px rounded-full">{t}</span>)}
+                  {c.tags.map(t => <span key={t} className="text-[7px] font-bold bg-amber-500/15 text-amber-500 px-1 py-px rounded-full">{t}</span>)}
                 </div>
               </div>
-              <div className="text-[8.5px] text-white/40">{c.society} <span className="bg-white/10 rounded px-1 py-px ml-0.5">{c.type}</span></div>
+              <div className={`text-[8.5px] ${textSub}`}>{c.society} <span className={`${societyBg} rounded px-1 py-px ml-0.5`}>{c.type}</span></div>
               <div className="flex items-center gap-2 mt-1">
-                <span className="flex items-center gap-0.5 text-[8px] text-white/35"><Calendar size={7} />{c.date}</span>
-                <span className="flex items-center gap-0.5 text-[8px] text-white/35"><Users size={7} />{c.need}</span>
+                <span className={`flex items-center gap-0.5 text-[8px] ${textMeta}`}><Calendar size={7} />{c.date}</span>
+                <span className={`flex items-center gap-0.5 text-[8px] ${textMeta}`}><Users size={7} />{c.need}</span>
               </div>
             </div>
             <div className="flex items-center pr-2">
-              <div className="text-[8px] font-semibold border border-amber-500/40 bg-amber-500/10 text-amber-400 px-2 py-1 rounded-md">View</div>
+              <div className="text-[8px] font-semibold border border-amber-500/40 bg-amber-500/10 text-amber-500 px-2 py-1 rounded-md">View</div>
             </div>
           </div>
         ))}
@@ -68,60 +93,65 @@ function ListingsPreview() {
 
 // ── Mock: Create Listing form ──────────────────────────────────────────────────
 
-function CreateListingPreview() {
+function CreateListingPreview({ dark }: { dark: boolean }) {
+  const bg = dark ? 'bg-[#141414]' : 'bg-white';
+  const textMain = dark ? 'text-white/90' : 'text-black/85';
+  const textSub = dark ? 'text-white/35' : 'text-black/35';
+  const labelCl = dark ? 'text-white/60' : 'text-black/55';
+  const inputBg = dark ? 'bg-white/6 border-white/10' : 'bg-black/3 border-black/8';
+  const placeholderCl = dark ? 'text-white/25' : 'text-black/25';
+  const iconCl = dark ? 'text-white/25' : 'text-black/25';
+  const uploadBg = dark ? 'bg-white/4 border-white/12' : 'bg-black/2 border-black/10';
+  const tagInactive = dark ? 'border-white/10 text-white/30' : 'border-black/10 text-black/30';
+
   return (
-    <div className="h-full bg-[#141414] rounded-xl overflow-hidden p-3.5 flex flex-col gap-2.5 text-white" style={{ fontSize: 11 }}>
+    <div className={`h-full ${bg} rounded-xl overflow-hidden p-3.5 flex flex-col gap-2.5`} style={{ fontSize: 11 }}>
       <div>
-        <div className="font-bold text-white/90 text-[13px]">Create Event Listing</div>
-        <div className="text-[9px] text-white/35 mt-0.5">Post a new collaboration opportunity for your society</div>
+        <div className={`font-bold ${textMain} text-[13px]`}>Create Event Listing</div>
+        <div className={`text-[9px] ${textSub} mt-0.5`}>Post a new collaboration opportunity for your society</div>
       </div>
-      {/* Title */}
       <div>
-        <div className="text-[9px] font-semibold text-white/60 mb-1">Event Title</div>
-        <div className="flex items-center gap-1.5 bg-white/6 border border-white/10 rounded-lg px-2.5 py-1.5">
-          <Image size={9} className="text-white/25 shrink-0" />
-          <span className="text-[9px] text-white/25">e.g., Epic Pubcrawl Collaboration</span>
+        <div className={`text-[9px] font-semibold ${labelCl} mb-1`}>Event Title</div>
+        <div className={`flex items-center gap-1.5 ${inputBg} border rounded-lg px-2.5 py-1.5`}>
+          <Image size={9} className={`${iconCl} shrink-0`} />
+          <span className={`text-[9px] ${placeholderCl}`}>e.g., Epic Pubcrawl Collaboration</span>
         </div>
       </div>
-      {/* Banner */}
       <div>
-        <div className="text-[9px] font-semibold text-white/60 mb-1">Event Banner <span className="text-white/30 font-normal">(Optional)</span></div>
-        <div className="bg-white/4 border border-dashed border-white/12 rounded-lg py-3 flex flex-col items-center gap-1">
-          <Image size={14} className="text-white/25" />
-          <span className="text-[8px] text-white/35">Click to upload or drag and drop</span>
-          <span className="text-[7px] text-white/20">PNG, JPG, GIF up to 5MB</span>
+        <div className={`text-[9px] font-semibold ${labelCl} mb-1`}>Event Banner <span className={`${textSub} font-normal`}>(Optional)</span></div>
+        <div className={`${uploadBg} border border-dashed rounded-lg py-3 flex flex-col items-center gap-1`}>
+          <Image size={14} className={iconCl} />
+          <span className={`text-[8px] ${textSub}`}>Click to upload or drag and drop</span>
+          <span className={`text-[7px] ${placeholderCl}`}>PNG, JPG, GIF up to 5MB</span>
         </div>
       </div>
-      {/* Description */}
       <div className="flex-1 flex flex-col">
-        <div className="text-[9px] font-semibold text-white/60 mb-1">Description</div>
-        <div className="flex-1 bg-white/6 border border-white/10 rounded-lg px-2.5 py-2 text-[8px] text-white/25">
+        <div className={`text-[9px] font-semibold ${labelCl} mb-1`}>Description</div>
+        <div className={`flex-1 ${inputBg} border rounded-lg px-2.5 py-2 text-[8px] ${placeholderCl}`}>
           Describe your event and what you're looking for in collaborating societies…
         </div>
       </div>
-      {/* Date + People row */}
       <div className="flex gap-2">
         <div className="flex-1">
-          <div className="text-[9px] font-semibold text-white/60 mb-1">Event Date</div>
-          <div className="flex items-center gap-1 bg-white/6 border border-white/10 rounded-lg px-2 py-1.5">
-            <Calendar size={8} className="text-white/30" />
-            <span className="text-[8px] text-white/25">dd / mm / yyyy</span>
+          <div className={`text-[9px] font-semibold ${labelCl} mb-1`}>Event Date</div>
+          <div className={`flex items-center gap-1 ${inputBg} border rounded-lg px-2 py-1.5`}>
+            <Calendar size={8} className={iconCl} />
+            <span className={`text-[8px] ${placeholderCl}`}>dd / mm / yyyy</span>
           </div>
         </div>
         <div className="flex-1">
-          <div className="text-[9px] font-semibold text-white/60 mb-1">People Needed</div>
-          <div className="flex items-center gap-1 bg-white/6 border border-white/10 rounded-lg px-2 py-1.5">
-            <Users size={8} className="text-white/30" />
-            <span className="text-[8px] text-white/25">e.g., 50</span>
+          <div className={`text-[9px] font-semibold ${labelCl} mb-1`}>People Needed</div>
+          <div className={`flex items-center gap-1 ${inputBg} border rounded-lg px-2 py-1.5`}>
+            <Users size={8} className={iconCl} />
+            <span className={`text-[8px] ${placeholderCl}`}>e.g., 50</span>
           </div>
         </div>
       </div>
-      {/* Tags */}
       <div>
-        <div className="text-[9px] font-semibold text-white/60 mb-1">Event Type(s)</div>
+        <div className={`text-[9px] font-semibold ${labelCl} mb-1`}>Event Type(s)</div>
         <div className="flex flex-wrap gap-1">
           {['Social', 'Events', 'Tech', 'Sports', 'Workshop'].map((t, i) => (
-            <span key={t} className={`text-[8px] font-semibold px-2 py-0.5 rounded-full border ${i < 2 ? 'bg-amber-500/15 border-amber-500/30 text-amber-400' : 'border-white/10 text-white/30'}`}>{t}</span>
+            <span key={t} className={`text-[8px] font-semibold px-2 py-0.5 rounded-full border ${i < 2 ? 'bg-amber-500/15 border-amber-500/30 text-amber-500' : tagInactive}`}>{t}</span>
           ))}
         </div>
       </div>
@@ -131,68 +161,78 @@ function CreateListingPreview() {
 
 // ── Mock: Profile page ────────────────────────────────────────────────────────
 
-function ProfilePreview() {
+function ProfilePreview({ dark }: { dark: boolean }) {
+  const bg = dark ? 'bg-[#141414]' : 'bg-white';
+  const border = dark ? 'border-white/8' : 'border-black/8';
+  const labelCl = dark ? 'text-white/30' : 'text-black/30';
+  const mutedCl = dark ? 'text-white/40' : 'text-black/40';
+  const textMain = dark ? 'text-white/85' : 'text-black/80';
+  const textSub = dark ? 'text-white/35' : 'text-black/35';
+  const iconBg = dark ? 'bg-white/8' : 'bg-black/6';
+  const editBorder = dark ? 'border-white/10' : 'border-black/10';
+  const editCl = dark ? 'text-white/40' : 'text-black/40';
+  const tabInactive = dark ? 'border-white/10 text-white/40' : 'border-black/10 text-black/40';
+  const emptyBg = dark ? 'bg-white/3 border-white/6' : 'bg-black/2 border-black/6';
+  const emptyText = dark ? 'text-white/50' : 'text-black/50';
+  const emptyMuted = dark ? 'text-white/25' : 'text-black/25';
+  const dotInactive = dark ? 'bg-white/20' : 'bg-black/15';
+
   return (
-    <div className="h-full bg-[#141414] rounded-xl overflow-hidden flex flex-col text-white" style={{ fontSize: 11 }}>
-      {/* Academic calendar strip */}
-      <div className="border-b border-white/8 px-3 py-2">
+    <div className={`h-full ${bg} rounded-xl overflow-hidden flex flex-col`} style={{ fontSize: 11 }}>
+      <div className={`border-b ${border} px-3 py-2`}>
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[8px] font-bold uppercase tracking-widest text-white/30">Event Calendar</span>
+          <span className={`text-[8px] font-bold uppercase tracking-widest ${labelCl}`}>Event Calendar</span>
           <div className="flex items-center gap-1.5">
-            <span className="text-[8px] text-white/40">UNSW</span>
+            <span className={`text-[8px] ${mutedCl}`}>UNSW</span>
             {['T1','T2','T3'].map((t, i) => (
-              <span key={t} className={`text-[8px] px-1.5 py-0.5 rounded-full ${i === 0 ? 'bg-blue-500/80 text-white font-bold' : 'text-white/30'}`}>{t}</span>
+              <span key={t} className={`text-[8px] px-1.5 py-0.5 rounded-full ${i === 0 ? 'bg-blue-500/80 text-white font-bold' : labelCl}`}>{t}</span>
             ))}
-            <span className="text-[8px] text-white/40 ml-1">2026</span>
+            <span className={`text-[8px] ${mutedCl} ml-1`}>2026</span>
           </div>
         </div>
-        {/* Timeline dots */}
         <div className="flex items-center gap-px">
           {Array.from({ length: 13 }).map((_, i) => (
-            <div key={i} className={`h-2 flex-1 flex items-center justify-center`}>
-              <div className={`w-1.5 h-1.5 rounded-full ${i < 10 ? 'bg-blue-500/70' : i < 12 ? 'bg-orange-500/70' : 'bg-white/20'}`} />
+            <div key={i} className="h-2 flex-1 flex items-center justify-center">
+              <div className={`w-1.5 h-1.5 rounded-full ${i < 10 ? 'bg-blue-500/70' : i < 12 ? 'bg-orange-500/70' : dotInactive}`} />
             </div>
           ))}
         </div>
       </div>
-      {/* Body */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left: profile card */}
-        <div className="w-[100px] shrink-0 border-r border-white/8 p-2.5 flex flex-col items-center gap-1.5">
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500/40 to-indigo-600/30 border-2 border-white/15 flex items-center justify-center">
+        <div className={`w-[100px] shrink-0 border-r ${border} p-2.5 flex flex-col items-center gap-1.5`}>
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500/40 to-indigo-600/30 border-2 border-blue-400/30 flex items-center justify-center">
             <span className="text-[11px] font-bold text-white">CS</span>
           </div>
           <div className="text-center">
-            <div className="text-[9px] font-bold text-white/85 leading-tight">Coding Society</div>
-            <div className="text-[8px] text-amber-400 font-bold uppercase mt-0.5">Tech</div>
-            <div className="text-[8px] text-white/35 mt-0.5">UNSW</div>
+            <div className={`text-[9px] font-bold ${textMain} leading-tight`}>Coding Society</div>
+            <div className="text-[8px] text-amber-500 font-bold uppercase mt-0.5">Tech</div>
+            <div className={`text-[8px] ${textSub} mt-0.5`}>UNSW</div>
           </div>
           <div className="flex gap-1.5 mt-0.5">
             {['✉','📷','📘'].map((icon, i) => (
-              <div key={i} className="w-5 h-5 rounded-full bg-white/8 flex items-center justify-center text-[8px]">{icon}</div>
+              <div key={i} className={`w-5 h-5 rounded-full ${iconBg} flex items-center justify-center text-[8px]`}>{icon}</div>
             ))}
           </div>
           <div className="flex items-center gap-0.5 mt-1">
             {[1,2,3,4].map(i => <Star key={i} size={8} className="fill-amber-400 text-amber-400" />)}
-            <Star size={8} className="text-white/20" />
+            <Star size={8} className={labelCl} />
           </div>
-          <div className="mt-1 flex items-center gap-1 border border-white/10 rounded-full px-2 py-0.5">
-            <Edit2 size={7} className="text-white/40" />
-            <span className="text-[8px] text-white/40">Edit Profile</span>
+          <div className={`mt-1 flex items-center gap-1 border ${editBorder} rounded-full px-2 py-0.5`}>
+            <Edit2 size={7} className={editCl} />
+            <span className={`text-[8px] ${editCl}`}>Edit Profile</span>
           </div>
         </div>
-        {/* Right: listings panel */}
         <div className="flex-1 p-2.5 flex flex-col gap-2 min-w-0">
           <div className="flex gap-1.5">
             {['View My Listings', 'History'].map((t, i) => (
-              <div key={t} className={`text-[8px] font-semibold px-2.5 py-1 rounded-md ${i === 0 ? 'border border-amber-500/50 text-amber-400' : 'border border-white/10 text-white/40'}`}>{t}</div>
+              <div key={t} className={`text-[8px] font-semibold px-2.5 py-1 rounded-md border ${i === 0 ? 'border-amber-500/50 text-amber-500' : tabInactive}`}>{t}</div>
             ))}
-            <div className="text-[8px] font-semibold px-2.5 py-1 rounded-md border border-white/10 text-white/40 flex items-center gap-1"><Plus size={7} />Create New</div>
+            <div className={`text-[8px] font-semibold px-2.5 py-1 rounded-md border ${tabInactive} flex items-center gap-1`}><Plus size={7} />Create New</div>
           </div>
-          <div className="flex-1 bg-white/3 rounded-lg border border-white/6 p-3 flex flex-col items-center justify-center gap-1.5">
+          <div className={`flex-1 ${emptyBg} rounded-lg border p-3 flex flex-col items-center justify-center gap-1.5`}>
             <Clock size={14} className="text-amber-500/70" />
-            <div className="text-[9px] font-semibold text-white/50">No upcoming listings yet</div>
-            <div className="text-[7.5px] text-white/25 text-center">Create a new listing and it will appear here as an upcoming event card.</div>
+            <div className={`text-[9px] font-semibold ${emptyText}`}>No upcoming listings yet</div>
+            <div className={`text-[7.5px] ${emptyMuted} text-center`}>Create a new listing and it will appear here as an upcoming event card.</div>
           </div>
         </div>
       </div>
@@ -419,22 +459,23 @@ function HowItWorksSection({ steps }: { steps: { title: string; description: str
 export function Landing() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const dark = useDark();
 
   const steps = [
     {
       title: 'Post your listing',
       description: "Create a listing for your upcoming event — add a title, banner, description, event type tags, and how many partners you need. Takes under a minute.",
-      preview: <CreateListingPreview />,
+      preview: <CreateListingPreview dark={dark} />,
     },
     {
       title: 'Browse & connect',
       description: "Explore listings from every society across UNSW. Filter by event type or society type. Send a collab request directly from the card.",
-      preview: <ListingsPreview />,
+      preview: <ListingsPreview dark={dark} />,
     },
     {
       title: 'Build your reputation',
       description: "Every successful collab adds to your profile. Earn ratings, show off your track record, and become the most trusted partner on campus.",
-      preview: <ProfilePreview />,
+      preview: <ProfilePreview dark={dark} />,
     },
   ];
 
