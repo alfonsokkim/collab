@@ -54,13 +54,6 @@ const currentTypeClasses: Record<WeekType, string> = {
   break: 'bg-slate-200 text-slate-900 dark:bg-[var(--bg-light)] dark:text-[var(--text)]',
 };
 
-const _legendClasses: Record<WeekType, string> = {
-  teaching: 'before:bg-blue-100 dark:before:bg-blue-900/40',
-  flex: 'before:border before:border-dashed before:border-slate-300 before:bg-slate-50 dark:before:border-[var(--border)] dark:before:bg-[var(--bg-light)]',
-  stuvac: 'before:bg-amber-100 dark:before:bg-amber-900/40',
-  exam: 'before:bg-orange-100 dark:before:bg-orange-900/40',
-  break: 'before:bg-slate-200 dark:before:bg-slate-700/60',
-};
 
 const mobileLabel: Record<WeekType, (label: string) => string> = {
   teaching: (l) => l,
