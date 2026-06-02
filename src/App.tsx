@@ -125,8 +125,13 @@ function PendingProfileHandler() {
 
 function LandingOrRedirect() {
   const { user, loading } = useAuth();
+  const hasVisited = sessionStorage.getItem('hasVisited');
   if (loading) return null;
-  if (user) return <Navigate to="/listings" replace />;
+  if (user && !hasVisited) {
+    sessionStorage.setItem('hasVisited', '1');
+    return <Navigate to="/listings" replace />;
+  }
+  sessionStorage.setItem('hasVisited', '1');
   return <Landing />;
 }
 

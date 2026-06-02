@@ -58,12 +58,12 @@ export function Landing() {
       </div>
 
       {/* Footer */}
-      <div className="fixed bottom-10 left-0 right-0 flex justify-center gap-5 text-[12px] text-black/25 dark:text-white/25 sm:bottom-5">
-        <Link to="/terms" className="hover:text-black/50 dark:hover:text-white/50 transition-colors">Terms of Service</Link>
+      <div className="fixed bottom-10 left-0 right-0 flex justify-center gap-5 text-[12px] text-black/45 dark:text-white/25 sm:bottom-5">
+        <Link to="/terms" className="hover:text-black/70 dark:hover:text-white/50 transition-colors">Terms of Service</Link>
         <span className="opacity-40">·</span>
-        <Link to="/privacy" className="hover:text-black/50 dark:hover:text-white/50 transition-colors">Privacy Policy</Link>
+        <Link to="/privacy" className="hover:text-black/70 dark:hover:text-white/50 transition-colors">Privacy Policy</Link>
         <span className="opacity-40">·</span>
-        <a href="mailto:hello@collabapp.au" className="hover:text-black/50 dark:hover:text-white/50 transition-colors">Contact</a>
+        <a href="mailto:hello@collabapp.au" className="hover:text-black/70 dark:hover:text-white/50 transition-colors">Contact</a>
       </div>
     </div>
   );
