@@ -440,27 +440,40 @@ export function Listings() {
     <div className="mx-auto max-w-[1200px] px-4 py-10 md:px-7">
       <div className="mb-7 flex items-start justify-between gap-4">
         <div>
-          <h1 className="mb-2 text-[var(--text)]">Event Listings</h1>
-          <p className="text-base text-[var(--text-light)]">
+          <h1 className="mb-1.5 text-[var(--text)]" style={{ fontFamily: 'var(--heading)' }}>Event Listings</h1>
+          <p className="text-[15px] text-[var(--text-light)]">
             Find societies to collaborate with and create amazing events together
           </p>
         </div>
-        <button
-          onClick={handleRefresh}
-          disabled={refreshing}
-          title="Refresh listings"
-          className="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg)] text-[var(--text-light)] transition hover:border-[var(--primary)] hover:text-[var(--primary)] disabled:opacity-40"
-        >
-          <RefreshCw size={15} strokeWidth={2} className={refreshing ? 'animate-spin' : ''} />
-        </button>
+        <div className="flex items-center gap-2 mt-1">
+          <button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            title="Refresh listings"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg)] text-[var(--text-light)] transition hover:border-[var(--primary)] hover:text-[var(--primary)] disabled:opacity-40"
+          >
+            <RefreshCw size={15} strokeWidth={2} className={refreshing ? 'animate-spin' : ''} />
+          </button>
+          {user && (
+            <button
+              onClick={() => navigate('/create-listing')}
+              className="inline-flex items-center gap-1.5 rounded-[var(--radius)] bg-[var(--primary)] px-4 py-2 text-[13px] font-semibold text-white transition hover:-translate-y-px hover:shadow-[0_4px_14px_rgba(232,160,69,0.35)]"
+            >
+              + Post Listing
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="grid items-start gap-7 md:grid-cols-[210px_minmax(0,1fr)]">
         {/* Sidebar filters */}
         <aside className="flex flex-col gap-0 md:sticky md:top-20">
           <div className="mb-[18px] border-b border-[var(--border-light)] pb-[18px]">
-            <h3 className="mb-2.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-light)]">
+            <h3 className="mb-2.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-light)]">
               Event Type
+              {selectedEventTypes.length > 0 && (
+                <span className="rounded-full bg-[var(--primary)] px-1.5 py-px text-[10px] font-bold text-white normal-case tracking-normal">{selectedEventTypes.length}</span>
+              )}
             </h3>
             <div className="flex flex-wrap gap-1 md:flex-col md:gap-0.5">
               {EVENT_TYPES.map((tag) => {
@@ -492,8 +505,11 @@ export function Listings() {
           </div>
 
           <div className="mb-3 border-b border-[var(--border-light)] pb-[18px] md:border-b-0 md:pb-0">
-            <h3 className="mb-2.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-light)]">
+            <h3 className="mb-2.5 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-light)]">
               Society Type
+              {selectedSocietyTypes.length > 0 && (
+                <span className="rounded-full bg-[var(--primary)] px-1.5 py-px text-[10px] font-bold text-white normal-case tracking-normal">{selectedSocietyTypes.length}</span>
+              )}
             </h3>
             <div className="flex flex-wrap gap-1 md:flex-col md:gap-0.5">
               {SOCIETY_TYPES.map((type) => {
@@ -540,19 +556,26 @@ export function Listings() {
 
         {/* Main list */}
         <main className="flex min-w-0 flex-col gap-3">
-          <div className="flex items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg)] px-3.5 py-[9px] text-[var(--text-light)]">
-            <Search size={15} />
+          <div className="flex items-center gap-2.5 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg)] px-4 py-[10px] text-[var(--text-light)] transition focus-within:border-[var(--primary)] focus-within:shadow-[0_0_0_3px_rgba(232,160,69,0.1)]">
+            <Search size={15} className="shrink-0" />
             <input
               type="text"
               placeholder="Search listings..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full border-none bg-transparent text-sm text-[var(--text)] outline-none placeholder:text-[var(--text-light)]"
+              className="w-full border-none bg-transparent text-[14px] text-[var(--text)] outline-none placeholder:text-[var(--text-light)]"
             />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} className="shrink-0 text-[var(--text-light)] hover:text-[var(--text)] transition">
+                <X size={14} />
+              </button>
+            )}
           </div>
 
-          <div className="mb-1 text-xs font-medium text-[var(--text-light)]">
-            Showing {Math.min((currentPage - 1) * PAGE_SIZE + 1, filteredListings.length)}–{Math.min(currentPage * PAGE_SIZE, filteredListings.length)} of {filteredListings.length} listing{filteredListings.length !== 1 ? 's' : ''}
+          <div className="mb-1 flex items-center gap-2 text-[12px] text-[var(--text-light)]">
+            <span className="rounded-full bg-[var(--bg-light)] border border-[var(--border-light)] px-2 py-0.5 font-semibold text-[var(--text-mid)]">{filteredListings.length}</span>
+            listing{filteredListings.length !== 1 ? 's' : ''} found
+            {hasFilters && <span className="text-[var(--primary-dark)]">· filtered</span>}
           </div>
 
           {loading ? (
@@ -583,26 +606,36 @@ export function Listings() {
             >
               {paginatedListings.map((listing) => {
                 const IconComponent = listing.icon;
+                const gradients = [
+                  'from-amber-400/20 to-orange-300/10',
+                  'from-blue-400/20 to-indigo-300/10',
+                  'from-purple-400/20 to-pink-300/10',
+                  'from-emerald-400/20 to-teal-300/10',
+                  'from-rose-400/20 to-red-300/10',
+                ];
+                const gradientClass = gradients[listing.id.charCodeAt(0) % gradients.length];
                 return (
                   <div
                     key={listing.id}
-                    className="flex min-h-[120px] cursor-pointer overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg)] transition hover:border-[rgba(232,160,69,0.45)] hover:shadow-[0_3px_16px_rgba(0,0,0,0.06)] max-sm:flex-col"
+                    className="group flex min-h-[120px] cursor-pointer overflow-hidden rounded-[var(--radius-lg)] border border-[var(--border)] bg-[var(--bg)] transition-all duration-200 hover:border-[rgba(232,160,69,0.5)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.08)] dark:hover:shadow-[0_4px_20px_rgba(0,0,0,0.3)] max-sm:flex-col"
                     onClick={() => handleSelectListing(listing)}
                   >
-                    <div className="w-[180px] shrink-0 overflow-hidden bg-[var(--bg-light)] max-sm:h-[140px] max-sm:w-full">
+                    {/* Thumbnail */}
+                    <div className="relative w-[170px] shrink-0 overflow-hidden bg-[var(--bg-light)] max-sm:h-[140px] max-sm:w-full">
                       {listing.bannerImage ? (
-                        <img src={listing.bannerImage} alt={listing.title} className="h-full w-full object-cover" />
+                        <img src={listing.bannerImage} alt={listing.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                       ) : (
-                        <div className="flex h-full w-full items-center justify-center bg-[var(--primary-subtle)] text-[var(--primary-dark)]">
-                          <IconComponent size={36} strokeWidth={1.25} />
+                        <div className={`flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br ${gradientClass}`}>
+                          <IconComponent size={32} strokeWidth={1.2} className="text-[var(--primary-dark)] opacity-70" />
                         </div>
                       )}
                     </div>
 
-                    <div className="flex min-w-0 flex-1 flex-col gap-1.5 px-[18px] py-[14px]">
+                    {/* Body */}
+                    <div className="flex min-w-0 flex-1 flex-col gap-1.5 px-5 py-4">
                       <div className="flex items-start justify-between gap-2.5 max-sm:flex-col">
-                        <div>
-                          <h3 className="mb-0.5 text-[15px] font-bold text-[var(--text)]">{listing.title}</h3>
+                        <div className="min-w-0">
+                          <h3 className="mb-0.5 truncate text-[15px] font-bold text-[var(--text)]">{listing.title}</h3>
                           <p className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-light)]">
                             <Link
                               to={`/society/${listing.userId}`}
@@ -634,29 +667,22 @@ export function Listings() {
                         {listing.description}
                       </p>
 
-                      <div className="flex gap-5 border-t border-[var(--border-light)] pt-2">
-                        <div className="flex flex-col gap-px">
-                          <span className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.07em] text-[var(--text-light)]">
-                            <Calendar size={13} className="text-[var(--primary)]" />
-                            Date
-                          </span>
-                          <span className="text-xs font-medium text-[var(--text)]">{listing.date}</span>
+                      <div className="flex gap-5 border-t border-[var(--border-light)] pt-2.5">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar size={12} className="text-[var(--primary)] shrink-0" />
+                          <span className="text-[12px] font-medium text-[var(--text-mid)]">{listing.date}</span>
                         </div>
-                        <div className="flex flex-col gap-px">
-                          <span className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-[0.07em] text-[var(--text-light)]">
-                            <Users size={13} className="text-[var(--primary)]" />
-                            Need
-                          </span>
-                          <span className="text-xs font-medium text-[var(--text)]">
-                            {listing.peopleNeeded} people
-                          </span>
+                        <div className="flex items-center gap-1.5">
+                          <Users size={12} className="text-[var(--primary)] shrink-0" />
+                          <span className="text-[12px] font-medium text-[var(--text-mid)]">{listing.peopleNeeded} people needed</span>
                         </div>
                       </div>
                     </div>
 
-                    <div className="flex shrink-0 items-center px-0 py-[14px] pr-4 max-sm:px-[14px] max-sm:pb-[14px] max-sm:pt-0">
+                    {/* CTA */}
+                    <div className="flex shrink-0 items-center px-0 py-4 pr-4 max-sm:px-4 max-sm:pb-4 max-sm:pt-0">
                       <button
-                        className="w-full rounded-[var(--radius)] bg-[var(--dark)] px-4 py-2 text-[13px] font-semibold text-white transition hover:-translate-y-px hover:opacity-90"
+                        className="w-full rounded-[var(--radius)] border border-[rgba(232,160,69,0.3)] bg-[var(--primary-subtle)] px-4 py-2 text-[13px] font-semibold text-[var(--primary-dark)] transition hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)] hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(232,160,69,0.3)]"
                         onClick={(e) => {
                           e.stopPropagation();
                           setSelectedListing(listing);
