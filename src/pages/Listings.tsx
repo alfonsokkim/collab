@@ -626,7 +626,7 @@ export function Listings() {
                         <img src={listing.bannerImage} alt={listing.title} className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105" />
                       ) : (
                         <div className={`flex h-full w-full flex-col items-center justify-center gap-2 bg-gradient-to-br ${gradientClass}`}>
-                          <IconComponent size={32} strokeWidth={1.2} className="text-[var(--primary-dark)] opacity-70" />
+                          <IconComponent size={32} strokeWidth={1.2} />
                         </div>
                       )}
                     </div>

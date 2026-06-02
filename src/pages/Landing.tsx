@@ -4,8 +4,8 @@ import { motion, useScroll, useTransform, MotionValue } from 'framer-motion';
 import { useAuth } from '../contexts/AuthContext';
 import ncsLogo from '../assets/NCS-logo.png';
 import {
-  ArrowRight, Calendar, Clock, Edit2, Filter, Image, Plus,
-  RefreshCw, Search, Star, Users, X, Zap,
+  ArrowRight, Calendar, Clock, Edit2, Image, Plus,
+  RefreshCw, Search, Star, Users,
 } from 'lucide-react';
 
 // ── Mock: Explore / Listings page ─────────────────────────────────────────────
