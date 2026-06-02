@@ -140,7 +140,7 @@ function PillDropdown<T extends string>({
     <div ref={ref} className={cn('relative', className)}>
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1 rounded-md bg-[var(--bg-light)] px-2.5 py-[3px] text-[12px] font-semibold text-[var(--text)] shadow-sm transition hover:bg-[var(--border-light)]"
+        className="flex items-center gap-1 rounded-full bg-[var(--bg-light)] px-3 py-[4px] text-[12px] font-semibold text-[var(--text)] shadow-sm transition hover:bg-[var(--border-light)]"
       >
         {current?.label ?? value}
         <ChevronDown size={11} className={cn('text-[var(--text-light)] transition-transform', open && 'rotate-180')} />
@@ -170,6 +170,14 @@ function PillDropdown<T extends string>({
 
 // ── Desktop timeline ──────────────────────────────────────────────────────────
 
+const nodeColors: Record<WeekType, { base: string; current: string; line: string }> = {
+  teaching: { base: 'bg-blue-200 dark:bg-blue-800/60',        current: 'bg-blue-500 dark:bg-blue-400',       line: 'bg-blue-200 dark:bg-blue-800/40' },
+  flex:     { base: 'bg-slate-200 dark:bg-slate-700/50',      current: 'bg-slate-400 dark:bg-slate-400',     line: 'bg-slate-200 dark:bg-slate-700/40' },
+  stuvac:   { base: 'bg-amber-200 dark:bg-amber-800/50',      current: 'bg-amber-500 dark:bg-amber-400',     line: 'bg-amber-200 dark:bg-amber-800/40' },
+  exam:     { base: 'bg-orange-200 dark:bg-orange-800/50',    current: 'bg-orange-500 dark:bg-orange-400',   line: 'bg-orange-200 dark:bg-orange-800/40' },
+  break:    { base: 'bg-slate-100 dark:bg-slate-800/40',      current: 'bg-slate-300 dark:bg-slate-500',     line: 'bg-slate-100 dark:bg-slate-800/30' },
+};
+
 function DesktopTimeline({
   selectedUni, setSelectedUni, selectedYear, setSelectedYear, selectedTerm, setSelectedTerm,
   termKeys, weeks, currentIdx, eventsByWeek, weekCount,
@@ -187,11 +195,9 @@ function DesktopTimeline({
   weekCount: number;
   eventDates: Date[];
 }) {
-  const gridTemplateColumns = `repeat(${weekCount}, minmax(0, 1fr))`;
-
   const pillBtn = (active: boolean, accent?: string) =>
     cn(
-      'rounded px-2.5 py-[3px] text-[12px] font-semibold transition',
+      'rounded-full px-2.5 py-[3px] text-[12px] font-semibold transition',
       active
         ? cn('shadow-[0_1px_3px_rgba(0,0,0,0.1)]', accent ?? 'bg-[var(--bg)] text-[var(--text)]')
         : 'text-[var(--text-light)]',
@@ -202,18 +208,12 @@ function DesktopTimeline({
 
   return (
     <>
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+      {/* Controls */}
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <span className="text-xs font-bold uppercase tracking-[0.08em] text-[var(--text-light)]">Event Calendar</span>
         <div className="flex flex-wrap items-center gap-1.5">
-          {/* University dropdown */}
-          <PillDropdown
-            value={selectedUni}
-            onChange={setSelectedUni}
-            options={uniOptions}
-          />
-
-          {/* Term pills */}
-          <div className="flex gap-0.5 rounded-md bg-[var(--bg-light)] p-0.5">
+          <PillDropdown value={selectedUni} onChange={setSelectedUni} options={uniOptions} />
+          <div className="flex gap-0.5 rounded-full bg-[var(--bg-light)] p-0.5">
             {termKeys.map((term) => {
               const accent =
                 term === 'T1' || term === 'S1' || term === 'Autumn' ? 'bg-blue-100 text-blue-600'
@@ -226,8 +226,6 @@ function DesktopTimeline({
               );
             })}
           </div>
-
-          {/* Year dropdown */}
           <PillDropdown
             value={selectedYear.toString() as `${Year}`}
             onChange={(v) => setSelectedYear(parseInt(v) as Year)}
@@ -236,87 +234,96 @@ function DesktopTimeline({
         </div>
       </div>
 
-      <div className="overflow-x-visible overflow-y-visible pb-1">
-        <div className="relative flex w-full flex-col">
-          <div className="relative mb-1 h-[18px] w-full">
-            {Array.from(eventsByWeek.entries()).map(([idx, evs]) => (
-              <div
-                key={idx}
-                className="absolute top-0 flex h-full -translate-x-1/2 items-center justify-center gap-0.5"
-                style={{ left: `${((idx + 0.5) / weekCount) * 100}%` }}
-              >
-                {evs.map((_, i) => (
-                  <div key={i} className="h-2 w-2 rounded-full bg-[var(--primary)] shadow-[0_0_6px_rgba(232,160,69,0.6)]" />
-                ))}
-              </div>
-            ))}
-          </div>
+      {/* Node timeline */}
+      <div className="relative px-2 pb-1">
 
-          <div className="grid w-full gap-0.5" style={{ gridTemplateColumns }}>
-            {weeks.map((w, i) => {
-              const isCurrentWeek = i === currentIdx;
-              const hasEvent = eventsByWeek.has(i);
-              return (
+        {/* Nodes + line container — line is absolute, nodes sit on top via z-10 */}
+        <div className="relative flex w-full items-center" style={{ height: '40px' }}>
+          {/* Single continuous line through all node centres */}
+          <div className="absolute left-0 right-0 top-1/2 h-[2px] -translate-y-1/2 bg-[var(--border)]" />
+
+          {weeks.map((w, i) => {
+            const isCurrentWeek = i === currentIdx;
+            const hasEvent = eventsByWeek.has(i);
+            const colors = nodeColors[w.type];
+
+            const nodeSize = isCurrentWeek ? 'h-7 w-7' : hasEvent ? 'h-7 w-7' : 'h-4 w-4';
+            const nodeBg = isCurrentWeek ? colors.current : hasEvent ? 'bg-[var(--primary)]' : colors.base;
+
+            return (
+              <div key={w.key} className="group relative flex flex-1 items-center justify-center">
                 <div
-                  key={w.key}
                   className={cn(
-                    'group relative flex h-[56px] min-w-0 items-center justify-center rounded-[10px] px-1 transition hover:scale-y-[1.04]',
-                    typeClasses[w.type],
-                    isCurrentWeek && 'outline outline-2 outline-offset-[-2px] outline-slate-700',
-                    isCurrentWeek && currentTypeClasses[w.type],
-                    hasEvent && 'bg-[linear-gradient(180deg,rgba(232,160,69,0.22)_0%,rgba(232,160,69,0.12)_100%)] text-[var(--primary-dark)] outline outline-2 outline-offset-[-2px] outline-[rgba(232,160,69,0.8)]',
-                    hasEvent && isCurrentWeek && 'outline-slate-800',
+                    'relative z-10 rounded-full transition-transform duration-150 group-hover:scale-125 cursor-default',
+                    nodeSize,
+                    nodeBg,
+                    isCurrentWeek && 'shadow-[0_0_0_3px_rgba(255,255,255,0.15),0_0_14px_rgba(99,132,255,0.35)]',
+                    hasEvent && !isCurrentWeek && 'shadow-[0_0_8px_rgba(232,160,69,0.5)]',
                   )}
-                  title={`${w.term} ${w.label} — ${w.start.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}`}
-                >
-                  <span className="w-full overflow-hidden text-ellipsis whitespace-nowrap text-center text-[clamp(10px,0.9vw,13px)] font-bold uppercase tracking-[0.03em]">
-                    {w.label}
-                  </span>
+                />
 
-                  {hasEvent && (
-                    <div className="pointer-events-none absolute left-1/2 top-[calc(100%+10px)] z-30 hidden w-56 -translate-x-1/2 rounded-2xl border border-[rgba(232,160,69,0.28)] bg-[var(--bg)] p-3 text-left shadow-[0_18px_36px_rgba(15,23,42,0.14)] group-hover:block">
-                      <div className="mb-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[var(--primary-dark)]">Events</div>
-                      <div className="space-y-2">
-                        {eventsByWeek.get(i)?.map((event) => (
-                          <div key={event.id} className="rounded-xl border border-[rgba(232,160,69,0.16)] bg-[rgba(232,160,69,0.06)] px-2.5 py-2">
-                            <div className="text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--primary-dark)]">
-                              {event.eventDate.toLocaleDateString('en-AU', { day: 'numeric', month: 'short', year: 'numeric' })}
-                            </div>
-                            <div className="mt-1 line-clamp-2 text-xs font-semibold leading-5 text-[var(--text)]">{event.title}</div>
+                {/* Tooltip */}
+                <div className="pointer-events-none absolute bottom-[calc(100%+10px)] left-1/2 z-40 hidden w-52 -translate-x-1/2 rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-3 text-left shadow-[0_12px_32px_rgba(0,0,0,0.15)] group-hover:block">
+                  <div className="mb-1 text-[11px] font-bold text-[var(--text)]">{w.term} {w.label}</div>
+                  <div className="mb-2 text-[10px] text-[var(--text-light)]">
+                    {w.start.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
+                  </div>
+                  {hasEvent ? (
+                    <div className="space-y-1.5">
+                      {eventsByWeek.get(i)?.map((event) => (
+                        <div key={event.id} className="rounded-lg border border-[rgba(232,160,69,0.2)] bg-[rgba(232,160,69,0.07)] px-2.5 py-1.5">
+                          <div className="text-[10px] text-[var(--primary-dark)]">
+                            {event.eventDate.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}
                           </div>
-                        ))}
-                      </div>
+                          <div className="mt-0.5 line-clamp-2 text-[11px] font-semibold text-[var(--text)]">{event.title}</div>
+                        </div>
+                      ))}
                     </div>
+                  ) : (
+                    <div className="text-[10px] text-[var(--text-light)] opacity-60">No events this week</div>
                   )}
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
+        </div>
 
-          <div className="relative mt-2 h-[14px] w-full">
-            {weeks.map((w, i) => {
-              const isFirst = i === 0 || w.start.getMonth() !== weeks[i - 1].start.getMonth();
-              if (!isFirst) return null;
-              return (
-                <div
-                  key={`m-${i}`}
-                  className="absolute whitespace-nowrap text-[9px] font-semibold uppercase tracking-[0.05em] text-[var(--text-light)]"
-                  style={{ left: `${(i / weekCount) * 100}%` }}
-                >
-                  {w.start.toLocaleDateString('en-AU', { month: 'short' })}
-                </div>
-              );
-            })}
-          </div>
+        {/* Week numbers */}
+        <div className="mt-2 flex w-full">
+          {weeks.map((w, i) => {
+            const label = w.type === 'teaching' ? w.label.replace(/\D/g, '') : null;
+            return (
+              <div key={i} className="flex flex-1 justify-center">
+                {label ? (
+                  <span className="text-[10px] font-medium text-[var(--text-light)]">{label}</span>
+                ) : (
+                  <span className="text-[9px] font-medium text-[var(--text-light)] opacity-40">
+                    {w.type === 'exam' ? 'E' : w.type === 'stuvac' ? 'S' : w.type === 'flex' ? 'F' : '·'}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* "weeks" label */}
+        <div className="mt-0.5 text-center text-[10px] font-medium uppercase tracking-[0.08em] text-[var(--text-light)] opacity-40">
+          weeks
         </div>
       </div>
 
+      {/* Legend */}
       <div className="mt-3 flex flex-wrap gap-3 border-t border-[var(--border)] pt-2.5">
         {(['teaching', 'flex', 'stuvac', 'exam', 'break'] as WeekType[]).map((type) => (
-          <span key={type} className={cn('flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.04em] text-[var(--text-light)]', 'before:inline-block before:h-2.5 before:w-2.5 before:rounded-[2px]', legendClasses[type])}>
+          <span key={type} className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.04em] text-[var(--text-light)]">
+            <span className={cn('inline-block h-2.5 w-2.5 rounded-full', nodeColors[type].base)} />
             {type === 'flex' ? flexLabel(selectedUni) : type === 'teaching' ? 'Teaching' : type === 'stuvac' ? 'Stuvac' : type === 'exam' ? 'Exams' : 'Break'}
           </span>
         ))}
+        <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.04em] text-[var(--text-light)]">
+          <span className="inline-block h-2.5 w-2.5 rounded-full bg-[var(--primary)]" />
+          Your Events
+        </span>
       </div>
     </>
   );
