@@ -59,6 +59,10 @@ body {
   box-sizing: border-box;
 }
 
+html {
+  scrollbar-gutter: stable;
+}
+
 #root {
   min-height: 100svh;
   width: 100%;
