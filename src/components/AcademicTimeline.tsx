@@ -54,7 +54,7 @@ const currentTypeClasses: Record<WeekType, string> = {
   break: 'bg-slate-200 text-slate-900 dark:bg-[var(--bg-light)] dark:text-[var(--text)]',
 };
 
-const legendClasses: Record<WeekType, string> = {
+const _legendClasses: Record<WeekType, string> = {
   teaching: 'before:bg-blue-100 dark:before:bg-blue-900/40',
   flex: 'before:border before:border-dashed before:border-slate-300 before:bg-slate-50 dark:before:border-[var(--border)] dark:before:bg-[var(--bg-light)]',
   stuvac: 'before:bg-amber-100 dark:before:bg-amber-900/40',
@@ -180,7 +180,7 @@ const nodeColors: Record<WeekType, { base: string; current: string; line: string
 
 function DesktopTimeline({
   selectedUni, setSelectedUni, selectedYear, setSelectedYear, selectedTerm, setSelectedTerm,
-  termKeys, weeks, currentIdx, eventsByWeek, weekCount,
+  termKeys, weeks, currentIdx, eventsByWeek, weekCount: _weekCount,
 }: {
   selectedUni: SelectedUni;
   setSelectedUni: (u: SelectedUni) => void;

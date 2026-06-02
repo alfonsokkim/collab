@@ -3,9 +3,8 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AlertCircle, CheckCircle2, Clock, Lock, Mail, ShieldCheck, Users, XCircle } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { cn } from '../lib/utils';
-import { SOCIETY_TYPES, UNIVERSITIES, saveSocietyProfile } from '../services/societyService';
+import { SOCIETY_TYPES, UNIVERSITIES } from '../services/societyService';
 import {
-  runVerificationPipeline,
   findRegistryMatch,
   computeTrustScore,
   resolveApprovalStatus,
@@ -24,7 +23,7 @@ export function SignUp() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState<Step>('form');
-  const [verification, setVerification] = useState<VerificationResult | null>(null);
+  const [verification, _setVerification] = useState<VerificationResult | null>(null);
   const [preCheckScore, setPreCheckScore] = useState<number>(0);
   const { signUp } = useAuth();
   const navigate = useNavigate();
