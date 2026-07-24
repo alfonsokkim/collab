@@ -436,7 +436,7 @@ export function Listings() {
   useEffect(() => { setCurrentPage(1); }, [selectedEventTypes, selectedSocietyTypes, searchQuery]);
 
   return (
-    <div className="mx-auto max-w-[1200px] px-4 py-10 md:px-7">
+    <div className="mx-auto max-w-[1360px] px-4 py-10 md:px-7">
       <div className="mb-7 flex items-start justify-between gap-4">
         <div>
           <h1 className="mb-1.5 text-[var(--text)]" style={{ fontFamily: 'var(--heading)' }}>Event Listings</h1>
