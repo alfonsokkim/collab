@@ -101,7 +101,7 @@ export function Navbar() {
   return (
     <nav className="sticky top-0 z-[1000] bg-white dark:bg-[var(--bg)]">
       {/* Inner container */}
-      <div className="mx-auto flex h-[60px] w-full max-w-[1200px] items-center justify-between px-4 md:px-7">
+      <div className="mx-auto flex h-[60px] w-full max-w-[1360px] items-center justify-between px-4 md:px-7">
         <Link to="/" className="font-[var(--heading)] text-[20px] font-bold tracking-[-0.3px] text-[var(--text)] transition hover:opacity-75">
           Collab
         </Link>
