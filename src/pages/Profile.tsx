@@ -756,7 +756,7 @@ export function Profile() {
                 onClick={async () => {
                   const expected = (society.name || 'My Society').trim();
                   if (deleteConfirmName.trim() !== expected) {
-                    setDeleteNameError(`That's not right — check the name and try again.`);
+                    setDeleteNameError(`That's not right - check the name and try again.`);
                     return;
                   }
                   setDeleting(true);

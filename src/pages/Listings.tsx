@@ -133,40 +133,27 @@ function ExpressInterestModal({
   );
 }
 
-// ── Listing detail modal ──────────────────────────────────────────────────────
+// ── Listing detail panel (Google-Images-style sidebar) ───────────────────────
 
-function ListingModal({
+function ListingDetailPanel({
   listing,
   onClose,
   isOwner,
   alreadyRequested,
   onExpressInterest,
+  className,
 }: {
   listing: Listing;
   onClose: () => void;
   isOwner: boolean;
   alreadyRequested: boolean;
   onExpressInterest: () => void;
+  className?: string;
 }) {
-  // Close on Escape key
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [onClose]);
-
   const IconComponent = listing.icon;
 
   return (
-    <div
-      className="fixed inset-0 z-[1500] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm"
-      onClick={onClose}
-    >
-      <div
-        className="relative w-full max-w-[680px] max-h-[88vh] overflow-hidden rounded-2xl bg-[var(--bg)] shadow-2xl flex flex-col"
-        style={{ animation: 'modal-pop 0.2s cubic-bezier(0.34,1.4,0.64,1)' }}
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className={cn('flex flex-col overflow-hidden border border-[var(--border)] bg-[var(--bg)]', className)}>
         {/* Sticky top bar */}
         <div className="flex shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--bg)]/95 px-5 py-3 backdrop-blur-sm">
           <div className="flex items-center gap-3">
@@ -204,7 +191,7 @@ function ListingModal({
         {/* Scrollable body */}
         <div className="overflow-y-auto flex-1">
           {/* Banner */}
-          <div className="aspect-[16/7] w-full overflow-hidden bg-[var(--bg-light)]">
+          <div className="aspect-[16/9] w-full overflow-hidden bg-[var(--bg-light)]">
             {listing.bannerImage ? (
               <img src={listing.bannerImage} alt={listing.title} className="h-full w-full object-cover" />
             ) : (
@@ -218,7 +205,7 @@ function ListingModal({
           <div className="px-6 py-5">
             {/* Title row */}
             <div className="mb-4">
-              <h2 className="text-2xl font-bold leading-tight text-[var(--text)]">{listing.title}</h2>
+              <h2 className="text-xl font-bold leading-tight text-[var(--text)]">{listing.title}</h2>
               <div className="mt-1.5 flex items-center gap-2">
                 <Link
                   to={`/society/${listing.userId}`}
@@ -311,7 +298,6 @@ function ListingModal({
             )}
           </div>
         </div>
-      </div>
     </div>
   );
 }
@@ -359,6 +345,19 @@ export function Listings() {
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 12;
   const [myUniversity, setMyUniversity] = useState<string | null>(null);
+
+  // Keep the last selected listing mounted so the sidebar close animation can play out
+  const lastListingRef = useRef<Listing | null>(null);
+  if (selectedListing) lastListingRef.current = selectedListing;
+  const displayListing = selectedListing ?? lastListingRef.current;
+
+  // Close the detail sidebar on Escape
+  useEffect(() => {
+    if (!selectedListing) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') setSelectedListing(null); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [selectedListing]);
 
   useEffect(() => {
     if (!user) return;
@@ -554,8 +553,9 @@ export function Listings() {
           )}
         </aside>
 
-        {/* Main list */}
-        <main className="flex min-w-0 flex-col gap-3">
+        {/* Main list + detail sidebar */}
+        <div className="flex min-w-0 items-start">
+        <main className="flex min-w-0 flex-1 flex-col gap-3">
           <div className="flex items-center gap-2.5 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg)] px-4 py-[10px] text-[var(--text-light)] transition focus-within:border-[var(--primary)] focus-within:shadow-[0_0_0_3px_rgba(232,160,69,0.1)]">
             <Search size={15} className="shrink-0" />
             <input
@@ -596,7 +596,7 @@ export function Listings() {
                   </button>
                 </>
               ) : (
-                <p className="text-[14px] text-[var(--text-light)]">No listings yet — be the first to <Link to="/create-listing" className="font-medium text-[var(--primary-dark)] hover:underline underline-offset-2">post one</Link>.</p>
+                <p className="text-[14px] text-[var(--text-light)]">No listings yet - be the first to <Link to="/create-listing" className="font-medium text-[var(--primary-dark)] hover:underline underline-offset-2">post one</Link>.</p>
               )}
             </div>
           ) : (
@@ -685,7 +685,7 @@ export function Listings() {
                         className="w-full rounded-[var(--radius)] border border-[rgba(232,160,69,0.3)] bg-[var(--primary-subtle)] px-4 py-2 text-[13px] font-semibold text-[var(--primary-dark)] transition hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)] hover:-translate-y-px hover:shadow-[0_4px_12px_rgba(232,160,69,0.3)]"
                         onClick={(e) => {
                           e.stopPropagation();
-                          setSelectedListing(listing);
+                          handleSelectListing(listing);
                         }}
                       >
                         View Details
@@ -742,16 +742,51 @@ export function Listings() {
             </div>
           )}
         </main>
+
+        {/* Detail sidebar (desktop) - squeezes the list width like Google Images */}
+        <div
+          className={cn(
+            'shrink-0 overflow-hidden transition-all duration-300 ease-in-out max-md:hidden md:sticky md:top-20',
+            selectedListing ? 'ml-6 w-[380px] opacity-100' : 'ml-0 w-0 opacity-0',
+          )}
+        >
+          {displayListing && (
+            <div className="w-[380px]">
+              <ListingDetailPanel
+                listing={displayListing}
+                onClose={() => setSelectedListing(null)}
+                isOwner={!!user && user.id === displayListing.userId}
+                alreadyRequested={selectedListingRequested}
+                onExpressInterest={() => user ? setExpressInterestListing(displayListing) : navigate('/login')}
+                className="max-h-[calc(100vh-6rem)] rounded-[var(--radius-lg)]"
+              />
+            </div>
+          )}
+        </div>
+        </div>
       </div>
 
+      {/* Detail overlay (mobile) - slides in from the right */}
       {selectedListing && (
-        <ListingModal
-          listing={selectedListing}
-          onClose={() => setSelectedListing(null)}
-          isOwner={!!user && user.id === selectedListing.userId}
-          alreadyRequested={selectedListingRequested}
-          onExpressInterest={() => user ? setExpressInterestListing(selectedListing) : navigate('/login')}
-        />
+        <div
+          className="fixed inset-0 z-[1500] bg-slate-950/60 backdrop-blur-sm md:hidden"
+          onClick={() => setSelectedListing(null)}
+        >
+          <div
+            className="absolute inset-y-0 right-0 w-full max-w-[420px]"
+            style={{ animation: 'gallerySlideRight 0.25s ease-out' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ListingDetailPanel
+              listing={selectedListing}
+              onClose={() => setSelectedListing(null)}
+              isOwner={!!user && user.id === selectedListing.userId}
+              alreadyRequested={selectedListingRequested}
+              onExpressInterest={() => user ? setExpressInterestListing(selectedListing) : navigate('/login')}
+              className="h-full"
+            />
+          </div>
+        </div>
       )}
 
       {expressInterestListing && (

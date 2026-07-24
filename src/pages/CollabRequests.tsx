@@ -137,7 +137,7 @@ export function CollabRequests() {
       if (req) {
         // p_new_member_id is the society joining the listing's group room.
         // If a society applied to our listing, they are the new member.
-        // If we were invited by a host, we (current user) are the new member — the
+        // If we were invited by a host, we (current user) are the new member - the
         // function also adds auth.uid() automatically, so pass fromUserId as a hint.
         const newMemberId = req.initiatedBy === 'applicant' ? req.fromUserId : req.fromUserId;
         const roomId = await getOrCreateListingRoom(
@@ -168,7 +168,7 @@ export function CollabRequests() {
     (r) => r.toListing.id === selectedListingId && r.status === 'pending',
   );
 
-  // Outgoing: only host invites I sent (applicant requests are just "applied" — shown elsewhere)
+  // Outgoing: only host invites I sent (applicant requests are just "applied" - shown elsewhere)
   const outgoingInvites = outgoing.filter((r) => r.initiatedBy === 'host');
 
   // Count badges
@@ -248,7 +248,7 @@ export function CollabRequests() {
               </div>
             ) : (
               <div className="grid items-start gap-7 md:grid-cols-[200px_minmax(0,1fr)]">
-                {/* Sidebar — listing tabs */}
+                {/* Sidebar - listing tabs */}
                 <aside className="md:sticky md:top-20">
                   <h3 className="mb-2.5 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--text-light)]">
                     Your Events

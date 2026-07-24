@@ -171,7 +171,7 @@ export async function fetchIncomingRequests(): Promise<CollabRequest[]> {
     .filter((r: any) =>
       // incoming: someone applied to my listing
       (r.initiated_by === 'applicant' && r.to_user_id === userData.user!.id) ||
-      // incoming: I (as host) sent an invite — show in outgoing, not incoming; filtered below
+      // incoming: I (as host) sent an invite - show in outgoing, not incoming; filtered below
       false
     )
     .map((r: any) => {
@@ -344,7 +344,7 @@ export async function searchSocieties(query: string): Promise<SocietySearchResul
     // 1. Substring match (spaces stripped): "noc" → "No Code Society" ✓
     if (name.replace(/\s+/g, '').toLowerCase().includes(needle)) return true;
 
-    // 2. Acronym match: first letter of each word — "ncs" → "No Code Society" ✓
+    // 2. Acronym match: first letter of each word - "ncs" → "No Code Society" ✓
     const acronym = name
       .split(/\s+/)
       .map((w) => w[0]?.toLowerCase() ?? '')

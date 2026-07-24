@@ -228,7 +228,7 @@ function IdentityStep({
       </Field>
 
       {/* Read-only name */}
-      <Field label="Society Name" hint="Set during sign-up — contact support to change.">
+      <Field label="Society Name" hint="Set during sign-up - contact support to change.">
         <div className="flex items-center gap-2.5 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--bg-light)] px-3.5 py-[10px] opacity-60">
           <Users size={15} className="shrink-0 text-[var(--text-light)]" />
           <span className="text-[14px] text-[var(--text)]">{societyName}</span>
@@ -238,7 +238,7 @@ function IdentityStep({
       {/* Type badge */}
       <Field label="Society Type">
         <div className="w-fit rounded-full border border-[rgba(232,160,69,0.3)] bg-[var(--primary-subtle)] px-3 py-1">
-          <span className="text-[13px] font-semibold text-[var(--primary-dark)]">{societyType || '—'}</span>
+          <span className="text-[13px] font-semibold text-[var(--primary-dark)]">{societyType || '-'}</span>
         </div>
       </Field>
     </div>
@@ -300,7 +300,7 @@ function SocialsStep({ form, onChange }: { form: FormData; onChange: (p: Partial
       <div>
         <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--primary)]">Step 3 of 3</p>
         <h2 className="font-[var(--heading)] text-[22px] font-bold tracking-[-0.4px] text-[var(--text)]">Find you online</h2>
-        <p className="text-[13px] text-[var(--text-light)]">All optional — add whatever you have.</p>
+        <p className="text-[13px] text-[var(--text-light)]">All optional - add whatever you have.</p>
       </div>
 
       <div className="flex flex-col gap-3.5">

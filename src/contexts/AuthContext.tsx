@@ -62,7 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error) {
         throw error;
       }
-      // If email confirmation is disabled, session is available immediately — set it
+      // If email confirmation is disabled, session is available immediately - set it
       // so subsequent inserts (societies, verification_requests) pass RLS auth.uid() checks.
       if (data.session) {
         await supabase.auth.setSession(data.session);

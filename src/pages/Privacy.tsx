@@ -70,7 +70,7 @@ export function Privacy() {
           <p>
             Your society's profile (name, description, type, university, and social links) is visible to all
             other verified Collab users. Your registered email address is also visible to other users via the
-            contact button on your public profile page — clicking it opens a mailto link directly to your
+            contact button on your public profile page - clicking it opens a mailto link directly to your
             address. If you do not wish your email to be publicly contactable, do not use a personal address
             when registering; use a shared society inbox instead. Direct messages sent through the Collab
             chat feature are only visible to the two parties involved in a conversation.
@@ -131,7 +131,7 @@ export function Privacy() {
           <p>Collab uses the following third-party services:</p>
           <ul className="mt-3 list-disc space-y-2 pl-5">
             <li>
-              <strong className="text-[var(--text)]">Supabase</strong> — database, authentication, and file
+              <strong className="text-[var(--text)]">Supabase</strong> - database, authentication, and file
               storage. Supabase's privacy policy applies to data processed on their infrastructure.
             </li>
           </ul>

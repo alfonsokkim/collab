@@ -241,7 +241,7 @@ export function Navbar() {
             </Link>
           )}
 
-          {/* Dark mode toggle — inline in desktop nav */}
+          {/* Dark mode toggle - inline in desktop nav */}
           <button
             onClick={toggleDark}
             aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}

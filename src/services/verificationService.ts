@@ -29,7 +29,7 @@ export function computeTrustScore(params: {
   const reasons: string[] = [];
   let score = 0;
 
-  // Fuzzy registry match (max 80 pts) — primary signal
+  // Fuzzy registry match (max 80 pts) - primary signal
   if (registryMatch) {
     // Fuse score: 0 = perfect, 1 = no match. Invert to 0–1 where 1 = perfect.
     const matchQuality = 1 - registryMatch.score;
@@ -128,7 +128,7 @@ export async function findRegistryMatch(societyName: string): Promise<{
   return { score: best.score ?? 1, entry: best.item.entry };
 }
 
-// Full verification pipeline — call after user account is created
+// Full verification pipeline - call after user account is created
 export async function runVerificationPipeline(params: {
   userId: string;
   email: string;

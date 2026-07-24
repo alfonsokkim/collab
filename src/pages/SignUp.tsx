@@ -118,7 +118,7 @@ export function SignUp() {
           <h2 className="mb-2 font-[var(--heading)] text-[22px] text-[var(--text)]">Check your email</h2>
           <p className="text-sm text-[var(--text-light)]">
             We sent a confirmation link to <span className="font-semibold text-[var(--text)]">{email}</span>.
-            Click it to activate your account — your society profile will be set up automatically.
+            Click it to activate your account - your society profile will be set up automatically.
           </p>
           <p className="mt-4 text-[12px] text-[var(--text-light)]">You can close this tab.</p>
         </div>
@@ -291,7 +291,7 @@ export function SignUp() {
               <a href="https://www.arc.unsw.edu.au/clubs" target="_blank" rel="noopener noreferrer" className="underline underline-offset-2 hover:text-[var(--text)]">
                 Arc rubric
               </a>
-              {' '}as closely as possible — this helps us verify your society faster.
+              {' '}as closely as possible - this helps us verify your society faster.
             </p>
           </div>
 

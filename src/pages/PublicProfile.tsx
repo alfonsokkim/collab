@@ -193,7 +193,7 @@ function ReviewsModal({
                   {submitting ? 'Submitting…' : 'Submit Review'}
                 </button>
               )}
-              {submitted && <p className="mt-1.5 text-xs text-[var(--text-light)]">You've already reviewed — edit not supported yet.</p>}
+              {submitted && <p className="mt-1.5 text-xs text-[var(--text-light)]">You've already reviewed - edit not supported yet.</p>}
             </div>
           )}
 

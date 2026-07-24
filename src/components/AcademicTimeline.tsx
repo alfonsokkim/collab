@@ -230,7 +230,7 @@ function DesktopTimeline({
       {/* Node timeline */}
       <div className="relative px-2 pb-1">
 
-        {/* Nodes + line container — line is absolute, nodes sit on top via z-10 */}
+        {/* Nodes + line container - line is absolute, nodes sit on top via z-10 */}
         <div className="relative flex w-full items-center" style={{ height: '40px' }}>
           {/* Single continuous line through all node centres */}
           <div className="absolute left-0 right-0 top-1/2 h-[2px] -translate-y-1/2 bg-[var(--border)]" />
@@ -465,7 +465,7 @@ function MobileTimeline({
                     ctx ? mobileBadgeClasses[ctx.week.type] : 'bg-[var(--bg-light)] text-[var(--text-light)]',
                     isSpecial && 'ring-1 ring-orange-300 dark:ring-orange-500/40',
                   )}>
-                    <span className="text-[9px] font-bold uppercase leading-none tracking-wide opacity-70">{weekTag ?? '—'}</span>
+                    <span className="text-[9px] font-bold uppercase leading-none tracking-wide opacity-70">{weekTag ?? '-'}</span>
                     <span className="mt-0.5 text-[11px] font-bold leading-none">
                       {event.eventDate.toLocaleDateString('en-AU', { day: 'numeric' })}
                     </span>
@@ -523,7 +523,7 @@ function MobileTimeline({
                     hasEvent && isCurrentWeek && 'outline-slate-800',
                   )}
                   style={{ scrollSnapAlign: 'start' }}
-                  title={`${w.term} ${w.label} — ${w.start.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}`}
+                  title={`${w.term} ${w.label} - ${w.start.toLocaleDateString('en-AU', { day: 'numeric', month: 'short' })}`}
                 >
                   <span className="text-center text-[11px] font-bold uppercase tracking-wide leading-none">{abbr}</span>
                   <span className="mt-1 text-center text-[9px] leading-none opacity-60">

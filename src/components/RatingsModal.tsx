@@ -82,7 +82,7 @@ export function RatingsModal({
               ))}
             </div>
             <span className="font-semibold text-white">
-              {averageRating > 0 ? averageRating.toFixed(1) : '—'}
+              {averageRating > 0 ? averageRating.toFixed(1) : '-'}
             </span>
             {reviewCount > 0 && <span>{reviewCount} reviews</span>}
           </div>

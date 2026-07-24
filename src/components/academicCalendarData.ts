@@ -14,7 +14,7 @@ function d(iso: string) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// UNSW (Trimester) — 2025 · 2026 · 2027
+// UNSW (Trimester) - 2025 · 2026 · 2027
 // Each trimester: W1-W5, Flex, W6-W10, Stuvac, Exams×2, Break×2
 // T2 has 2 break weeks before T3 starts
 // ─────────────────────────────────────────────────────────────────────────────
@@ -169,7 +169,7 @@ export const UNSW_WEEKS: WeekCell[] = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// UTS (Autumn/Spring) — 2025 · 2026 · 2027
+// UTS (Autumn/Spring) - 2025 · 2026 · 2027
 // 12 teaching weeks, mid-sem break after W6, stuvac, exams×2
 // ─────────────────────────────────────────────────────────────────────────────
 export const UTS_WEEKS: WeekCell[] = [
@@ -296,7 +296,7 @@ export const UTS_WEEKS: WeekCell[] = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MQ — Macquarie University (S1/S2) — 2025 · 2026 · 2027
+// MQ - Macquarie University (S1/S2) - 2025 · 2026 · 2027
 // 13 teaching weeks, mid-sem break after W6, stuvac, exams×2
 // ─────────────────────────────────────────────────────────────────────────────
 export const MQ_WEEKS: WeekCell[] = [
@@ -432,7 +432,7 @@ export const MQ_WEEKS: WeekCell[] = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// WSU — Western Sydney University (Autumn/Spring) — 2025 · 2026 · 2027
+// WSU - Western Sydney University (Autumn/Spring) - 2025 · 2026 · 2027
 // 12 teaching weeks, mid-sem break after W6, stuvac, exams×2
 // ─────────────────────────────────────────────────────────────────────────────
 export const WSU_WEEKS: WeekCell[] = [
@@ -559,7 +559,7 @@ export const WSU_WEEKS: WeekCell[] = [
 ];
 
 // ─────────────────────────────────────────────────────────────────────────────
-// USYD (Semester) — 2025 · 2026 · 2027
+// USYD (Semester) - 2025 · 2026 · 2027
 // W1-W6, mid-sem break, W7-W13, Stuvac, Exams×2
 // ─────────────────────────────────────────────────────────────────────────────
 export const USYD_WEEKS: WeekCell[] = [

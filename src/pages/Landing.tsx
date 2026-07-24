@@ -346,7 +346,7 @@ function HeroMockup() {
   );
 }
 
-// ── Scroll step — driven by section scroll progress ──────────────────────────
+// ── Scroll step - driven by section scroll progress ──────────────────────────
 
 function ScrollStep({ step, title, description, preview, index, scrollYProgress, range }: {
   step: number;
@@ -403,7 +403,7 @@ function ScrollStep({ step, title, description, preview, index, scrollYProgress,
   );
 }
 
-// ── How it works section — scroll progress drives each step ──────────────────
+// ── How it works section - scroll progress drives each step ──────────────────
 
 function HowItWorksSection({ steps }: { steps: { title: string; description: string; preview: React.ReactNode }[] }) {
   const sectionRef = useRef<HTMLElement>(null);
@@ -431,7 +431,7 @@ function HowItWorksSection({ steps }: { steps: { title: string; description: str
             How it works
           </h2>
           <p className="mt-4 text-[var(--text-light)] text-[16px] max-w-md mx-auto">
-            From idea to co-hosted event — in three steps.
+            From idea to co-hosted event - in three steps.
           </p>
         </div>
 
@@ -464,7 +464,7 @@ export function Landing() {
   const steps = [
     {
       title: 'Post your listing',
-      description: "Create a listing for your upcoming event — add a title, banner, description, event type tags, and how many partners you need. Takes under a minute.",
+      description: "Create a listing for your upcoming event - add a title, banner, description, event type tags, and how many partners you need. Takes under a minute.",
       preview: <CreateListingPreview dark={dark} />,
     },
     {
